@@ -1,0 +1,3 @@
+com.chuangjie.framework.datasource.config.ChuangjieDataSourceAutoConfiguration
+com.chuangjie.framework.mybatis.config.ChuangjieMybatisAutoConfiguration
+com.chuangjie.framework.translate.config.ChuangjieTranslateAutoConfiguration

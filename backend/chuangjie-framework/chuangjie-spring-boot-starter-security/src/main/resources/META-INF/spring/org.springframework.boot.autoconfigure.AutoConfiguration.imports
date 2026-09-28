@@ -1,0 +1,3 @@
+com.chuangjie.framework.security.config.ChuangjieSecurityAutoConfiguration
+com.chuangjie.framework.security.config.ChuangjieWebSecurityConfigurerAdapter
+com.chuangjie.framework.operatelog.config.ChuangjieOperateLogConfiguration

@@ -1,0 +1,2 @@
+com.chuangjie.framework.redis.config.ChuangjieRedisAutoConfiguration
+com.chuangjie.framework.redis.config.ChuangjieCacheAutoConfiguration

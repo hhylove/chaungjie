@@ -1,0 +1,1 @@
+package com.chuangjie.module.crm.framework.permission.core;

@@ -1,0 +1,2 @@
+com.chuangjie.framework.tracer.config.ChuangjieTracerAutoConfiguration
+com.chuangjie.framework.tracer.config.ChuangjieMetricsAutoConfiguration

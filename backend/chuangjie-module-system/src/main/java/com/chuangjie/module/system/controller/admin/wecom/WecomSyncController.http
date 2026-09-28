@@ -1,0 +1,41 @@
+### 手动同步当前租户的企微通讯录（需 system:wecom-sync:execute）
+POST {{baseUrl}}/system/wecom-sync/execute
+Authorization: Bearer {{token}}
+tenant-id: {{tenantId}}
+
+### 管理员核对后应用最近一次企微通讯录（需 system:wecom-sync:apply）
+### 根据企微 ID 映射创建或覆盖已关联的部门与员工姓名、部门、可获取的手机/邮箱/性别；保留角色、状态、账号名、密码。
+POST {{baseUrl}}/system/wecom-sync/apply
+Authorization: Bearer {{token}}
+tenant-id: {{tenantId}}
+
+### 最近一次成功同步
+GET {{baseUrl}}/system/wecom-sync/latest
+Authorization: Bearer {{token}}
+tenant-id: {{tenantId}}
+
+### 企微部门镜像
+GET {{baseUrl}}/system/wecom-sync/departments
+Authorization: Bearer {{token}}
+tenant-id: {{tenantId}}
+
+### 企微成员镜像
+GET {{baseUrl}}/system/wecom-sync/users
+Authorization: Bearer {{token}}
+tenant-id: {{tenantId}}
+
+### 管理员核对后关联现有系统账号（需 system:wecom-sync:link）
+PUT {{baseUrl}}/system/wecom-sync/link
+Authorization: Bearer {{token}}
+tenant-id: {{tenantId}}
+Content-Type: application/json
+
+{"wecomUserId":"test-user-id","systemUserId":1}
+
+### 管理员核对后关联现有系统部门（需 system:wecom-sync:link）
+PUT {{baseUrl}}/system/wecom-sync/link-department
+Authorization: Bearer {{token}}
+tenant-id: {{tenantId}}
+Content-Type: application/json
+
+{"wecomDeptId":10,"systemDeptId":100}

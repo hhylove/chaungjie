@@ -1,0 +1,7 @@
+com.chuangjie.framework.apilog.config.ChuangjieApiLogAutoConfiguration
+com.chuangjie.framework.jackson.config.ChuangjieJacksonAutoConfiguration
+com.chuangjie.framework.swagger.config.ChuangjieSwaggerAutoConfiguration
+com.chuangjie.framework.web.config.ChuangjieWebAutoConfiguration
+com.chuangjie.framework.xss.config.ChuangjieXssAutoConfiguration
+com.chuangjie.framework.banner.config.ChuangjieBannerAutoConfiguration
+com.chuangjie.framework.encrypt.config.ChuangjieApiEncryptAutoConfiguration

@@ -1,0 +1,4 @@
+com.chuangjie.framework.idempotent.config.ChuangjieIdempotentConfiguration
+com.chuangjie.framework.lock4j.config.ChuangjieLock4jConfiguration
+com.chuangjie.framework.ratelimiter.config.ChuangjieRateLimiterConfiguration
+com.chuangjie.framework.signature.config.ChuangjieApiSignatureAutoConfiguration

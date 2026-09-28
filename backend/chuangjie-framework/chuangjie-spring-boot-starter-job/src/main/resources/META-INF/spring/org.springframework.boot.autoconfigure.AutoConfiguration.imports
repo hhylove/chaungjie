@@ -1,0 +1,2 @@
+com.chuangjie.framework.quartz.config.ChuangjieQuartzAutoConfiguration
+com.chuangjie.framework.quartz.config.ChuangjieAsyncAutoConfiguration

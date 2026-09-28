@@ -1,0 +1,1827 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>工作台 - 创界管理系统</title>
+    <style>
+      :root {
+        --glass-blur: 18px;
+        --glass-saturate: 160%;
+        --glass-bg: rgba(255, 255, 255, 0.58);
+        --glass-bg-strong: rgba(255, 255, 255, 0.72);
+        --glass-border: rgba(255, 255, 255, 0.55);
+        --glass-border-soft: rgba(124, 92, 255, 0.18);
+        --glass-shadow: 0 10px 30px rgba(76, 29, 149, 0.1), 0 2px 8px rgba(15, 23, 42, 0.04);
+        --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+        --brand-gradient: linear-gradient(135deg, #7c5cff 0%, #4f7cff 48%, #38bdf8 100%);
+        --page-bg-gradient: linear-gradient(145deg, #eef2ff 0%, #f5f3ff 38%, #e0f2fe 72%, #f8fafc 100%);
+        --left-menu-bg-color: rgba(15, 23, 52, 0.72);
+        --left-menu-text-color: rgba(226, 232, 240, 0.88);
+        --left-menu-text-active-color: #fff;
+        --left-menu-bg-active-color: rgba(124, 92, 255, 0.28);
+        --left-menu-hover-bg-color: rgba(255, 255, 255, 0.08);
+        --top-header-bg-color: rgba(255, 255, 255, 0.62);
+        --top-header-text-color: #312e81;
+        --logo-height: 52px;
+        --el-color-primary: #6d5efc;
+        --el-text-color-primary: #1f2329;
+        --el-text-color-secondary: #646a73;
+        --el-text-color-placeholder: #8a909c;
+        --app-content-padding: 20px;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+        font-family:
+          'PingFang SC',
+          'Microsoft YaHei',
+          system-ui,
+          -apple-system,
+          sans-serif;
+        color: var(--el-text-color-primary);
+        background: var(--page-bg-gradient);
+        background-attachment: fixed;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body::before {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        content: '';
+        background:
+          radial-gradient(ellipse 60% 45% at 12% 18%, rgba(124, 92, 255, 0.22), transparent 60%),
+          radial-gradient(ellipse 50% 40% at 88% 12%, rgba(56, 189, 248, 0.18), transparent 55%),
+          radial-gradient(ellipse 45% 35% at 70% 88%, rgba(167, 139, 250, 0.16), transparent 50%);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button {
+        font: inherit;
+        border: none;
+        background: none;
+        cursor: pointer;
+      }
+
+      .app {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        background: var(--left-menu-bg-color);
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(22px) saturate(var(--glass-saturate));
+        -webkit-backdrop-filter: blur(22px) saturate(var(--glass-saturate));
+      }
+
+      .logo {
+        height: var(--logo-height);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .logo img {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        object-fit: cover;
+      }
+
+      .logo span {
+        color: #fff;
+        font-size: 15px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      .menu {
+        padding: 12px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        overflow: auto;
+      }
+
+      .menu-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 40px;
+        padding: 8px 12px;
+        color: var(--left-menu-text-color);
+        border-radius: 10px;
+        font-size: 13px;
+        line-height: 1.35;
+        transition: background 0.2s ease;
+        width: 100%;
+        text-align: left;
+      }
+
+      .menu-item:hover {
+        background: var(--left-menu-hover-bg-color);
+      }
+
+      .menu-item.is-active {
+        color: var(--left-menu-text-active-color);
+        background: var(--left-menu-bg-active-color);
+      }
+
+      .menu-item svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+        opacity: 0.9;
+      }
+
+      .menu-item__text {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .menu-item__arrow {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+        opacity: 0.7;
+        transition: transform 0.2s ease;
+      }
+
+      .menu-group.is-open > .menu-item .menu-item__arrow {
+        transform: rotate(90deg);
+      }
+
+      .submenu {
+        display: none;
+        flex-direction: column;
+        gap: 2px;
+        padding: 2px 0 6px 12px;
+      }
+
+      .menu-group.is-open > .submenu {
+        display: flex;
+      }
+
+      .submenu-item {
+        display: block;
+        padding: 8px 12px 8px 28px;
+        color: rgba(226, 232, 240, 0.72);
+        border-radius: 8px;
+        font-size: 12px;
+        line-height: 1.4;
+        transition: background 0.2s ease, color 0.2s ease;
+      }
+
+      .submenu-item:hover {
+        color: #fff;
+        background: var(--left-menu-hover-bg-color);
+      }
+
+      .submenu-item.is-active {
+        color: #fff;
+        background: rgba(124, 92, 255, 0.22);
+      }
+
+      .main {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .header {
+        height: var(--logo-height);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        background: var(--top-header-bg-color);
+        border-bottom: 1px solid var(--glass-border-soft);
+        backdrop-filter: blur(16px) saturate(var(--glass-saturate));
+        -webkit-backdrop-filter: blur(16px) saturate(var(--glass-saturate));
+      }
+
+      .breadcrumb {
+        color: var(--top-header-text-color);
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .header-user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--top-header-text-color);
+        font-size: 14px;
+      }
+
+      .header-user img {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+
+      .content {
+        flex: 1;
+        padding: var(--app-content-padding);
+      }
+
+      .workplace {
+        max-width: 1400px;
+      }
+
+      .card {
+        border-radius: 16px;
+        overflow: hidden;
+        background: var(--glass-bg-strong);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow), var(--glass-highlight);
+        backdrop-filter: blur(16px) saturate(var(--glass-saturate));
+        -webkit-backdrop-filter: blur(16px) saturate(var(--glass-saturate));
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--glass-border-soft);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent);
+        font-weight: 600;
+      }
+
+      .card-header .link {
+        color: var(--el-color-primary);
+        font-size: 13px;
+        font-weight: 400;
+      }
+
+      .card-header .hint {
+        color: var(--el-text-color-placeholder);
+        font-size: 12px;
+        font-weight: 400;
+      }
+
+      .card-body {
+        padding: 8px 12px 16px;
+      }
+
+      .hero {
+        margin-bottom: 16px;
+      }
+
+      .hero-body {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 20px 24px;
+      }
+
+      .hero-left {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+      }
+
+      .hero-avatar {
+        width: 64px;
+        height: 64px;
+        margin-right: 16px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+      }
+
+      .hero-title {
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      .hero-sub {
+        margin-top: 8px;
+        font-size: 13px;
+        color: var(--el-text-color-secondary);
+      }
+
+      .hero-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .stat {
+        min-width: 88px;
+        padding: 10px 16px;
+        background: rgba(109, 94, 252, 0.08);
+        border: 1px solid rgba(109, 94, 252, 0.16);
+        border-radius: 14px;
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .stat:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(109, 94, 252, 0.12);
+      }
+
+      .stat--muted:hover {
+        transform: none;
+        box-shadow: none;
+      }
+
+      .stat__label {
+        font-size: 12px;
+        color: var(--el-text-color-secondary);
+      }
+
+      .stat__value {
+        margin-top: 4px;
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 1.2;
+        color: var(--el-color-primary);
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+
+      .panel {
+        min-height: 320px;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 18px;
+        margin-bottom: 8px;
+        border-bottom: 1px solid rgba(124, 92, 255, 0.12);
+        padding: 0 6px;
+      }
+
+      .tab {
+        position: relative;
+        padding: 10px 0 12px;
+        color: var(--el-text-color-secondary);
+        font-size: 14px;
+      }
+
+      .tab.is-active {
+        color: var(--el-color-primary);
+        font-weight: 600;
+      }
+
+      .tab.is-active::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -1px;
+        height: 2px;
+        background: var(--el-color-primary);
+        border-radius: 2px;
+      }
+
+      .tab-panel {
+        display: none;
+      }
+
+      .tab-panel.is-active {
+        display: block;
+      }
+
+      .list {
+        max-height: 360px;
+        overflow: auto;
+      }
+
+      .list-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 12px 10px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+
+      .list-item:hover {
+        background: rgba(109, 94, 252, 0.06);
+      }
+
+      .list-item + .list-item {
+        border-top: 1px solid rgba(124, 92, 255, 0.08);
+      }
+
+      .list-item__main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .list-item__title {
+        font-size: 14px;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .list-item__desc {
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--el-text-color-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .list-item__time {
+        flex-shrink: 0;
+        margin-left: 12px;
+        font-size: 12px;
+        color: var(--el-text-color-placeholder);
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        height: 22px;
+        padding: 0 8px;
+        border-radius: 999px;
+        background: rgba(109, 94, 252, 0.12);
+        color: var(--el-color-primary);
+        font-size: 12px;
+      }
+
+      .tag::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      .shortcuts {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        padding: 8px 6px 4px;
+      }
+
+      .shortcut {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 12px;
+        border-radius: 16px;
+        cursor: pointer;
+        transition:
+          background 0.2s ease,
+          transform 0.2s ease;
+      }
+
+      .shortcut:hover {
+        background: rgba(109, 94, 252, 0.06);
+        transform: translateY(-2px);
+      }
+
+      .shortcut__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        color: #fff;
+        box-shadow: 0 8px 16px rgba(109, 94, 252, 0.2);
+      }
+
+      .shortcut__icon svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      .shortcut__name {
+        max-width: 100%;
+        font-size: 13px;
+        line-height: 1.4;
+        text-align: center;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      @media (max-width: 1200px) {
+        .row {
+          grid-template-columns: 1fr;
+        }
+
+        .shortcuts {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 768px) {
+        .sidebar {
+          display: none;
+        }
+
+        .shortcuts {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* workbench — dense full-width */
+      .content { padding: 12px 14px 16px; }
+      .wb { width: 100%; max-width: none; display: flex; flex-direction: column; gap: 12px; }
+      .wb-hero {
+        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        padding: 12px 16px; border-radius: 14px;
+        background: var(--glass-bg-strong); border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow), var(--glass-highlight);
+        backdrop-filter: blur(16px) saturate(var(--glass-saturate));
+        -webkit-backdrop-filter: blur(16px) saturate(var(--glass-saturate));
+      }
+      .wb-hero__left { display: flex; align-items: center; gap: 16px; min-width: 0; flex-wrap: wrap; }
+      .wb-hero h1 { font-size: 18px; font-weight: 700; white-space: nowrap; }
+      .wb-nav { display: flex; align-items: center; gap: 4px; }
+      .wb-nav a {
+        padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 500;
+        color: var(--el-text-color-secondary); transition: background .15s, color .15s;
+      }
+      .wb-nav a:hover, .wb-nav a.is-on {
+        color: var(--el-color-primary); background: rgba(109,94,252,.1);
+      }
+      .wb-hero__sub { font-size: 12px; color: var(--el-text-color-placeholder); }
+      .wb-ticker {
+        display: flex; gap: 10px; overflow-x: auto; overflow-y: hidden;
+        padding: 2px 2px 6px; scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(109,94,252,.35) transparent;
+      }
+      .wb-ticker::-webkit-scrollbar { height: 5px; }
+      .wb-ticker::-webkit-scrollbar-thumb {
+        background: rgba(109,94,252,.35); border-radius: 999px;
+      }
+      .wb-ticker__panel {
+        flex: 0 0 min(420px, 78vw); scroll-snap-align: start;
+        border-radius: 12px; overflow: hidden;
+        background: var(--glass-bg-strong); border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow), var(--glass-highlight);
+        backdrop-filter: blur(16px) saturate(var(--glass-saturate));
+        -webkit-backdrop-filter: blur(16px) saturate(var(--glass-saturate));
+        display: flex; flex-direction: column; min-height: 0; max-height: 168px;
+      }
+      .wb-ticker__panel.is-wide { flex-basis: min(520px, 88vw); }
+      .wb-ticker__hd {
+        display: flex; align-items: center; justify-content: space-between; gap: 8px;
+        padding: 8px 12px; border-bottom: 1px solid var(--glass-border-soft);
+        background: linear-gradient(180deg, rgba(255,255,255,.4), transparent);
+        flex-shrink: 0;
+      }
+      .wb-ticker__hd h3 {
+        font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px;
+      }
+      .wb-ticker__hd .link { color: var(--el-color-primary); font-size: 11px; font-weight: 500; }
+      .wb-ticker__hd .meta { font-size: 11px; color: var(--el-text-color-placeholder); }
+      .wb-ticker__bd {
+        padding: 8px 10px 10px; overflow-y: auto; flex: 1; min-height: 0;
+        scrollbar-width: thin;
+      }
+      .ticker-risk, .ticker-meet { display: flex; flex-direction: column; gap: 6px; }
+      .ticker-risk__item, .ticker-meet__item {
+        display: flex; gap: 8px; align-items: flex-start;
+        padding: 6px 8px; border-radius: 8px;
+        background: rgba(255,255,255,.45); border: 1px solid rgba(124,92,255,.07);
+      }
+      .ticker-risk__lv {
+        flex-shrink: 0; height: 18px; padding: 0 6px; border-radius: 5px;
+        font-size: 10px; font-weight: 700; display: inline-flex; align-items: center;
+      }
+      .ticker-risk__lv.is-h { background: rgba(220,38,38,.1); color: #dc2626; }
+      .ticker-risk__lv.is-m { background: rgba(217,119,6,.12); color: #d97706; }
+      .ticker-risk__t { font-size: 12px; font-weight: 600; line-height: 1.3; }
+      .ticker-risk__d { margin-top: 1px; font-size: 11px; color: var(--el-text-color-secondary); }
+      .ticker-meet__time {
+        flex-shrink: 0; width: 42px; font-size: 12px; font-weight: 700;
+        color: var(--el-color-primary); font-variant-numeric: tabular-nums;
+      }
+      .ticker-meet__t { font-size: 12px; font-weight: 600; }
+      .ticker-meet__d { margin-top: 1px; font-size: 11px; color: var(--el-text-color-secondary); }
+      .ticker-trend {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+      }
+      .ticker-trend__box {
+        padding: 8px 9px; border-radius: 8px;
+        background: rgba(255,255,255,.5); border: 1px solid rgba(124,92,255,.08);
+      }
+      .ticker-trend__l { font-size: 11px; color: var(--el-text-color-secondary); }
+      .ticker-trend__v {
+        margin-top: 2px; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums;
+      }
+      .ticker-trend__v em {
+        font-style: normal; font-size: 11px; font-weight: 600;
+        color: var(--el-text-color-secondary); margin-left: 1px;
+      }
+      .ticker-trend__c {
+        margin-top: 6px; height: 28px; display: flex; align-items: flex-end; gap: 3px;
+      }
+      .ticker-trend__c span {
+        flex: 1; border-radius: 2px 2px 0 0; min-height: 4px;
+        background: linear-gradient(180deg, rgba(109,94,252,.55), rgba(109,94,252,.18));
+      }
+      .ticker-trend__c.is-teal span {
+        background: linear-gradient(180deg, rgba(13,148,136,.55), rgba(13,148,136,.18));
+      }
+      .wb-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+      .wb-chip {
+        height: 26px; padding: 0 10px; border-radius: 8px; font-size: 12px;
+        display: inline-flex; align-items: center; gap: 5px;
+        background: rgba(109,94,252,.06); border: 1px solid rgba(124,92,255,.12);
+        color: var(--el-text-color-secondary);
+      }
+      .wb-chip strong { color: var(--el-text-color-primary); font-weight: 600; }
+      .wb-panel {
+        border-radius: 14px; overflow: hidden;
+        background: var(--glass-bg-strong); border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow), var(--glass-highlight);
+        backdrop-filter: blur(16px) saturate(var(--glass-saturate));
+        -webkit-backdrop-filter: blur(16px) saturate(var(--glass-saturate));
+        display: flex; flex-direction: column;
+      }
+      .wb-panel__hd {
+        display: flex; align-items: center; justify-content: space-between; gap: 10px;
+        padding: 10px 14px; border-bottom: 1px solid var(--glass-border-soft);
+        background: linear-gradient(180deg, rgba(255,255,255,.4), transparent);
+      }
+      .wb-panel__hd h2 {
+        font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px;
+      }
+      .wb-panel__hd .meta { font-size: 12px; color: var(--el-text-color-placeholder); font-weight: 400; }
+      .wb-panel__hd .link { color: var(--el-color-primary); font-size: 12px; font-weight: 500; }
+      .wb-panel__bd { padding: 12px 14px 14px; flex: 1; }
+      .wb-dot {
+        width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+        box-shadow: 0 0 0 3px rgba(109,94,252,0.14);
+        background: var(--el-color-primary);
+      }
+      .wb-dot--teal { background: #0d9488; box-shadow: 0 0 0 3px rgba(13,148,136,0.14); }
+      .wb-dot--amber { background: #d97706; box-shadow: 0 0 0 3px rgba(217,119,6,0.14); }
+      .wb-dot--rose { background: #e11d48; box-shadow: 0 0 0 3px rgba(225,29,72,0.14); }
+      .ops-sum {
+        display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 8px; margin-bottom: 12px;
+      }
+      .ops-sum__item {
+        padding: 8px 12px; border-radius: 10px;
+        background: rgba(109,94,252,.06); border: 1px solid rgba(124,92,255,.1);
+      }
+      .ops-sum__l { font-size: 11px; color: var(--el-text-color-secondary); }
+      .ops-sum__v {
+        margin-top: 2px; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums;
+      }
+      .ops-sum__v em { font-style: normal; font-size: 11px; font-weight: 600; color: var(--el-text-color-secondary); margin-left: 1px; }
+      .ops-sum__d { font-size: 11px; font-weight: 600; margin-left: 6px; }
+      .ops-sum__d.is-up { color: #059669; }
+      .ops-sum__d.is-down { color: #dc2626; }
+      .shop-table-wrap { overflow: auto; border-radius: 10px; border: 1px solid rgba(124,92,255,.1); }
+      .shop-table {
+        width: 100%; border-collapse: collapse; font-size: 12px; min-width: 860px;
+        background: rgba(255,255,255,.45);
+      }
+      .shop-table th {
+        text-align: left; font-weight: 600; color: var(--el-text-color-secondary);
+        padding: 9px 12px; background: rgba(109,94,252,.06);
+        border-bottom: 1px solid rgba(124,92,255,.1); white-space: nowrap;
+      }
+      .shop-table td {
+        padding: 10px 12px; border-bottom: 1px solid rgba(124,92,255,.07);
+        vertical-align: middle; white-space: nowrap;
+      }
+      .shop-table tr:last-child td { border-bottom: none; }
+      .shop-table tbody tr { transition: background .15s; }
+      .shop-table tbody tr:hover { background: rgba(109,94,252,.05); }
+      .shop-table .num { font-variant-numeric: tabular-nums; font-weight: 600; }
+      .shop-table .right { text-align: right; }
+      .shop-name {
+        display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px;
+      }
+      .shop-logo {
+        width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 11px; font-weight: 700; color: #fff;
+      }
+      .shop-logo.is-tm { background: linear-gradient(135deg, #ff6a00, #ee0a24); }
+      .shop-logo.is-jd { background: linear-gradient(135deg, #e4393c, #c8161d); }
+      .shop-logo.is-dy { background: linear-gradient(135deg, #111, #fe2c55); }
+      .shop-logo.is-pdd { background: linear-gradient(135deg, #e02e24, #f54e33); }
+      .shop-logo.is-wx { background: linear-gradient(135deg, #07c160, #06ae56); }
+      .shop-logo.is-offline { background: linear-gradient(135deg, #6d5efc, #4f7cff); }
+      .shop-sub { margin-top: 2px; font-size: 11px; font-weight: 400; color: var(--el-text-color-placeholder); }
+      .shop-share {
+        display: flex; align-items: center; gap: 8px; min-width: 120px;
+      }
+      .shop-share__bar {
+        flex: 1; height: 6px; border-radius: 999px; background: rgba(109,94,252,.12); overflow: hidden;
+      }
+      .shop-share__fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #7c5cff, #6d5efc); }
+      .shop-share__pct { width: 36px; text-align: right; font-variant-numeric: tabular-nums; color: var(--el-text-color-secondary); }
+      .delta { font-weight: 600; }
+      .delta.is-up { color: #059669; }
+      .delta.is-down { color: #dc2626; }
+      .shop-status {
+        display: inline-flex; height: 22px; padding: 0 8px; border-radius: 6px;
+        align-items: center; font-size: 11px; font-weight: 600;
+      }
+      .shop-status.is-ok { background: rgba(5,150,105,.1); color: #059669; }
+      .shop-status.is-warn { background: rgba(217,119,6,.12); color: #d97706; }
+      .shop-status.is-danger { background: rgba(220,38,38,.1); color: #dc2626; }
+      .proj-sum {
+        display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-bottom: 12px;
+      }
+      .proj-sum__item {
+        padding: 8px 12px; border-radius: 10px; text-align: center;
+        background: rgba(255,255,255,.5); border: 1px solid rgba(124,92,255,.08);
+      }
+      .proj-sum__n { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+      .proj-sum__l { margin-top: 2px; font-size: 11px; color: var(--el-text-color-secondary); }
+      .proj-sum__item.is-run .proj-sum__n { color: var(--el-color-primary); }
+      .proj-sum__item.is-ok .proj-sum__n { color: #059669; }
+      .proj-sum__item.is-warn .proj-sum__n { color: #d97706; }
+      .proj-sum__item.is-danger .proj-sum__n { color: #dc2626; }
+      .proj-grid {
+        display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px;
+      }
+      .proj {
+        padding: 12px; border-radius: 12px;
+        background: rgba(255,255,255,.5); border: 1px solid rgba(124,92,255,.08);
+        display: flex; flex-direction: column; gap: 8px;
+        transition: background .15s, box-shadow .15s;
+      }
+      .proj:hover { background: rgba(109,94,252,.05); box-shadow: 0 6px 16px rgba(109,94,252,.08); }
+      .proj__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+      .proj__name { font-size: 13px; font-weight: 700; line-height: 1.35; }
+      .proj__code { margin-top: 2px; font-size: 11px; color: var(--el-text-color-placeholder); }
+      .proj__tag {
+        flex-shrink: 0; height: 20px; padding: 0 7px; border-radius: 6px;
+        display: inline-flex; align-items: center; font-size: 11px; font-weight: 600;
+      }
+      .proj__tag.is-run { background: rgba(109,94,252,.12); color: var(--el-color-primary); }
+      .proj__tag.is-ok { background: rgba(5,150,105,.1); color: #059669; }
+      .proj__tag.is-warn { background: rgba(217,119,6,.12); color: #d97706; }
+      .proj__tag.is-danger { background: rgba(220,38,38,.1); color: #dc2626; }
+      .proj__meta {
+        display: flex; flex-wrap: wrap; gap: 8px 12px;
+        font-size: 11px; color: var(--el-text-color-secondary);
+      }
+      .proj__meta b { color: var(--el-text-color-primary); font-weight: 600; }
+      .proj__prog { display: flex; align-items: center; gap: 8px; }
+      .proj__bar {
+        flex: 1; height: 6px; border-radius: 999px;
+        background: rgba(109,94,252,.12); overflow: hidden;
+      }
+      .proj__fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #7c5cff, #6d5efc); }
+      .proj__fill.is-warn { background: linear-gradient(90deg, #fbbf24, #d97706); }
+      .proj__fill.is-danger { background: linear-gradient(90deg, #f87171, #dc2626); }
+      .proj__fill.is-ok { background: linear-gradient(90deg, #34d399, #059669); }
+      .proj__pct {
+        width: 36px; text-align: right; font-size: 12px; font-weight: 700;
+        font-variant-numeric: tabular-nums; color: var(--el-text-color-secondary);
+      }
+      .proj__foot {
+        display: flex; justify-content: space-between; align-items: center; gap: 8px;
+        font-size: 11px; color: var(--el-text-color-placeholder);
+        padding-top: 2px; border-top: 1px dashed rgba(124,92,255,.12);
+      }
+      .wb-dot--blue { background: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.14); }
+      .wb-grid {
+        display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px; align-items: stretch;
+      }
+      .wb-grid--3 {
+        display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: 12px;
+      }
+      .goal-list { display: flex; flex-direction: column; gap: 8px; }
+      .goal {
+        padding: 10px 12px; border-radius: 10px;
+        background: rgba(255,255,255,.5); border: 1px solid rgba(124,92,255,.08);
+      }
+      .goal__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+      .goal__name { font-size: 13px; font-weight: 600; }
+      .goal__owner { margin-top: 2px; font-size: 11px; color: var(--el-text-color-secondary); }
+      .goal__pct { font-size: 16px; font-weight: 700; color: var(--el-color-primary); font-variant-numeric: tabular-nums; }
+      .goal__bar {
+        margin-top: 8px; height: 6px; border-radius: 999px; background: rgba(109,94,252,.12); overflow: hidden;
+      }
+      .goal__fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #7c5cff, #6d5efc); }
+      .goal__fill.is-warn { background: linear-gradient(90deg, #f59e0b, #d97706); }
+      .goal__fill.is-danger { background: linear-gradient(90deg, #f87171, #dc2626); }
+      .goal__fill.is-ok { background: linear-gradient(90deg, #34d399, #059669); }
+      .goal__meta {
+        margin-top: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px;
+        font-size: 11px; color: var(--el-text-color-placeholder);
+      }
+      .goal__tag {
+        display: inline-flex; height: 18px; padding: 0 7px; border-radius: 6px;
+        align-items: center; font-size: 11px; font-weight: 500;
+      }
+      .goal__tag.is-ok { background: rgba(5,150,105,.1); color: #059669; }
+      .goal__tag.is-warn { background: rgba(217,119,6,.12); color: #d97706; }
+      .goal__tag.is-danger { background: rgba(220,38,38,.1); color: #dc2626; }
+      .tl-summary {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px;
+      }
+      .tl-pill {
+        text-align: center; padding: 8px 6px; border-radius: 10px;
+        background: rgba(255,255,255,.55); border: 1px solid rgba(124,92,255,.08);
+      }
+      .tl-pill__n { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+      .tl-pill__l { margin-top: 2px; font-size: 11px; color: var(--el-text-color-secondary); }
+      .tl-pill.is-g .tl-pill__n { color: #059669; }
+      .tl-pill.is-y .tl-pill__n { color: #d97706; }
+      .tl-pill.is-r .tl-pill__n { color: #dc2626; }
+      .task-list { display: flex; flex-direction: column; gap: 6px; }
+      .task {
+        display: grid; grid-template-columns: 8px 1fr auto; gap: 10px; align-items: start;
+        padding: 9px 10px; border-radius: 10px;
+        background: rgba(255,255,255,.45); border: 1px solid rgba(124,92,255,.07);
+        transition: background .15s ease;
+      }
+      .task:hover { background: rgba(109,94,252,.06); }
+      .task__light { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; }
+      .task__light.is-g { background: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.16); }
+      .task__light.is-y { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.16); }
+      .task__light.is-r { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.16); }
+      .task__main { min-width: 0; }
+      .task__title { font-size: 13px; font-weight: 600; line-height: 1.3; }
+      .task__desc { margin-top: 2px; font-size: 11px; color: var(--el-text-color-secondary); }
+      .task__prog {
+        margin-top: 7px; display: flex; align-items: center; gap: 8px;
+      }
+      .task__bar {
+        flex: 1; height: 6px; border-radius: 999px;
+        background: rgba(109,94,252,.12); overflow: hidden;
+      }
+      .task__fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #34d399, #059669); }
+      .task__fill.is-y { background: linear-gradient(90deg, #fbbf24, #d97706); }
+      .task__fill.is-r { background: linear-gradient(90deg, #f87171, #dc2626); }
+      .task__pct {
+        flex-shrink: 0; width: 32px; text-align: right;
+        font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums;
+        color: var(--el-text-color-secondary);
+      }
+      .task__side { text-align: right; }
+      .task__due { font-size: 11px; color: var(--el-text-color-placeholder); white-space: nowrap; }
+      .task__due.is-late { color: #dc2626; font-weight: 600; }
+      .task__owner {
+        margin-top: 4px; display: inline-flex; height: 18px; padding: 0 7px; border-radius: 6px;
+        font-size: 11px; align-items: center;
+        background: rgba(109,94,252,.1); color: var(--el-color-primary);
+      }
+      .risk-list, .meet-list { display: flex; flex-direction: column; gap: 8px; }
+      .risk-item, .meet-item {
+        display: flex; gap: 10px; align-items: flex-start;
+        padding: 9px 10px; border-radius: 10px;
+        background: rgba(255,255,255,.5); border: 1px solid rgba(124,92,255,.08);
+      }
+      .risk-item__lv {
+        flex-shrink: 0; height: 20px; padding: 0 7px; border-radius: 6px;
+        font-size: 11px; font-weight: 600; display: inline-flex; align-items: center;
+      }
+      .risk-item__lv.is-h { background: rgba(220,38,38,.1); color: #dc2626; }
+      .risk-item__lv.is-m { background: rgba(217,119,6,.12); color: #d97706; }
+      .risk-item__t { font-size: 13px; font-weight: 600; }
+      .risk-item__d { margin-top: 2px; font-size: 11px; color: var(--el-text-color-secondary); }
+      .meet-item__time {
+        flex-shrink: 0; width: 52px; font-size: 12px; font-weight: 700;
+        color: var(--el-color-primary); font-variant-numeric: tabular-nums;
+      }
+      .meet-item__t { font-size: 13px; font-weight: 600; }
+      .meet-item__d { margin-top: 2px; font-size: 11px; color: var(--el-text-color-secondary); }
+      .trend {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 100%;
+      }
+      .trend-box {
+        padding: 10px 12px; border-radius: 10px;
+        background: rgba(255,255,255,.5); border: 1px solid rgba(124,92,255,.08);
+        display: flex; flex-direction: column;
+      }
+      .trend-box__l { font-size: 12px; color: var(--el-text-color-secondary); }
+      .trend-box__v { margin-top: 4px; font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+      .trend-box__c {
+        margin-top: auto; padding-top: 10px; height: 56px;
+        display: flex; align-items: flex-end; gap: 4px;
+      }
+      .trend-box__c span {
+        flex: 1; border-radius: 3px 3px 0 0;
+        background: linear-gradient(180deg, rgba(109,94,252,.55), rgba(109,94,252,.18));
+        min-height: 8px;
+      }
+      .trend-box__c.is-teal span {
+        background: linear-gradient(180deg, rgba(13,148,136,.55), rgba(13,148,136,.18));
+      }
+      @media (max-width: 1280px) {
+        .ops-sum { grid-template-columns: repeat(3, minmax(0,1fr)); }
+        .proj-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+        .proj-sum { grid-template-columns: repeat(4, minmax(0,1fr)); }
+        .wb-grid--3 { grid-template-columns: 1fr 1fr; }
+        .wb-grid--3 > :last-child { grid-column: 1 / -1; }
+      }
+      @media (max-width: 960px) {
+        .wb-grid { grid-template-columns: 1fr; }
+        .wb-grid--3 { grid-template-columns: 1fr; }
+        .ops-sum { grid-template-columns: repeat(2, minmax(0,1fr)); }
+        .proj-grid { grid-template-columns: 1fr; }
+        .proj-sum { grid-template-columns: repeat(2, minmax(0,1fr)); }
+        .wb-hero { flex-direction: column; align-items: flex-start; }
+      }
+
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="logo">
+          <img src="./assets/logo.png" alt="创界" />
+          <span>创界管理系统</span>
+        </div>
+        <nav class="menu" id="sideMenu">
+          <a class="menu-item" href="index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z" />
+            </svg>
+            <span class="menu-item__text">首页</span>
+          </a>
+
+          <div class="menu-group is-open">
+            <button class="menu-item is-active" type="button" data-toggle>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7l7-4Z" />
+                <path d="M9 12l2 2 4-4" />
+              </svg>
+              <span class="menu-item__text">经营决策中心</span>
+              <svg class="menu-item__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 6l6 6-6 6" />
+              </svg>
+            </button>
+            <div class="submenu">
+              <a class="submenu-item is-active" href="workbench.html">工作台</a>
+              <a class="submenu-item" href="#">目标管理</a>
+            </div>
+          </div>
+
+          <div class="menu-group">
+            <button class="menu-item" type="button" data-toggle>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M4 19V5" />
+                <path d="M4 19h16" />
+                <path d="M8 15V9" />
+                <path d="M12 15V7" />
+                <path d="M16 15v-4" />
+              </svg>
+              <span class="menu-item__text">项目运营中心</span>
+              <svg class="menu-item__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 6l6 6-6 6" />
+              </svg>
+            </button>
+            <div class="submenu">
+              <a class="submenu-item" href="workbench.html">工作台</a>
+              <a class="submenu-item" href="#">目标管理</a>
+              <a class="submenu-item" href="#">商品库存</a>
+              <a class="submenu-item" href="#">选品</a>
+              <a class="submenu-item" href="#">平台服务</a>
+              <a class="submenu-item" href="#">AI助手</a>
+            </div>
+          </div>
+
+          <div class="menu-group">
+            <button class="menu-item" type="button" data-toggle>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M3 7h18l-2 12H5L3 7Z" />
+                <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+              <span class="menu-item__text">产品供应链中心</span>
+              <svg class="menu-item__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 6l6 6-6 6" />
+              </svg>
+            </button>
+            <div class="submenu">
+              <a class="submenu-item" href="workbench.html">工作台</a>
+              <a class="submenu-item" href="#">目标管理</a>
+              <a class="submenu-item" href="#">整理图片库</a>
+              <a class="submenu-item" href="#">发现潜力品</a>
+              <a class="submenu-item" href="#">商品定价限价</a>
+              <a class="submenu-item" href="#">组织清仓</a>
+              <a class="submenu-item" href="#">商品生命周期</a>
+              <a class="submenu-item" href="#">产品开发</a>
+            </div>
+          </div>
+
+          <div class="menu-group">
+            <button class="menu-item" type="button" data-toggle>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 3v18" />
+                <path d="M7 8c2-2 8-2 10 0" />
+                <path d="M5 16c3 2 11 2 14 0" />
+                <circle cx="12" cy="12" r="2" />
+              </svg>
+              <span class="menu-item__text">创业发展中心</span>
+              <svg class="menu-item__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 6l6 6-6 6" />
+              </svg>
+            </button>
+            <div class="submenu">
+              <a class="submenu-item" href="#">细分主题 1</a>
+              <a class="submenu-item" href="#">细分主题 2</a>
+              <a class="submenu-item" href="#">细分主题 3</a>
+            </div>
+          </div>
+
+          <a class="menu-item" href="#modules">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="6" width="18" height="12" rx="2" />
+              <circle cx="12" cy="12" r="2.5" />
+              <path d="M3 10h2M19 10h2M3 14h2M19 14h2" />
+            </svg>
+            <span class="menu-item__text">财务风控中心</span>
+          </a>
+          <a class="menu-item" href="#modules">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="4" y="4" width="6" height="6" rx="1" />
+              <rect x="14" y="4" width="6" height="6" rx="1" />
+              <rect x="4" y="14" width="6" height="6" rx="1" />
+              <path d="M14 17h6M17 14v6" />
+            </svg>
+            <span class="menu-item__text">AI 科技中心</span>
+          </a>
+          <a class="menu-item" href="#modules">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M3 9h18v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9Z" />
+              <path d="M3 9l2-4h14l2 4" />
+              <path d="M8 13h8" />
+            </svg>
+            <span class="menu-item__text">仓储履约中心</span>
+          </a>
+          <a class="menu-item" href="#modules">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="5" width="18" height="14" rx="2" />
+              <circle cx="12" cy="12" r="3.5" />
+              <circle cx="12" cy="12" r="1.2" />
+            </svg>
+            <span class="menu-item__text">视觉内容中心</span>
+          </a>
+        </nav>
+      </aside>
+
+      <div class="main">
+        <header class="header">
+          <div class="breadcrumb">经营决策中心 · 工作台</div>
+          <div class="header-user">
+            <img src="./assets/avatar.png" alt="用户头像" />
+            <span>张三</span>
+          </div>
+        </header>
+
+        <main class="content">
+          <div class="wb">
+            <div class="wb-hero">
+              <div class="wb-hero__left">
+                <h1>工作台</h1>
+                <nav class="wb-nav">
+                  <a href="#goals">目标</a>
+                  <a href="#tasks">任务</a>
+                  <a href="#projects">项目</a>
+                  <a class="is-on" href="#ops">经营</a>
+                </nav>
+                <span class="wb-hero__sub">聚焦核心业务中心关键指标与风险</span>
+              </div>
+              <div class="wb-chips">
+                <span class="wb-chip">周期 <strong>2026 Q1</strong></span>
+                <span class="wb-chip">更新 <strong>今天 09:30</strong></span>
+                <span class="wb-chip">组织 <strong>创杰科技</strong></span>
+              </div>
+            </div>
+
+            <div class="wb-ticker" id="wbTicker">
+              <section class="wb-ticker__panel">
+                <div class="wb-ticker__hd">
+                  <h3><span class="wb-dot wb-dot--rose"></span>风险预警</h3>
+                  <a class="link" href="#">全部</a>
+                </div>
+                <div class="wb-ticker__bd">
+                  <div class="ticker-risk">
+                    <div class="ticker-risk__item">
+                      <span class="ticker-risk__lv is-h">高</span>
+                      <div>
+                        <div class="ticker-risk__t">毛利率连续 2 周下滑</div>
+                        <div class="ticker-risk__d">促销占比升高 · 建议复核折扣政策</div>
+                      </div>
+                    </div>
+                    <div class="ticker-risk__item">
+                      <span class="ticker-risk__lv is-h">高</span>
+                      <div>
+                        <div class="ticker-risk__t">红灯任务积压 3 项</div>
+                        <div class="ticker-risk__d">华东复盘、合同盖章未闭环</div>
+                      </div>
+                    </div>
+                    <div class="ticker-risk__item">
+                      <span class="ticker-risk__lv is-m">中</span>
+                      <div>
+                        <div class="ticker-risk__t">新产品里程碑落后计划</div>
+                        <div class="ticker-risk__d">当前进度 33% · 目标周完成 50%</div>
+                      </div>
+                    </div>
+                    <div class="ticker-risk__item">
+                      <span class="ticker-risk__lv is-m">中</span>
+                      <div>
+                        <div class="ticker-risk__t">重点客户签约节奏偏慢</div>
+                        <div class="ticker-risk__d">剩余 28 天需再签 8 家</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="wb-ticker__panel is-wide">
+                <div class="wb-ticker__hd">
+                  <h3><span class="wb-dot"></span>经营趋势</h3>
+                  <span class="meta">近 7 日</span>
+                </div>
+                <div class="wb-ticker__bd">
+                  <div class="ticker-trend">
+                    <div class="ticker-trend__box">
+                      <div class="ticker-trend__l">日均销售额</div>
+                      <div class="ticker-trend__v">42.8<em>万</em></div>
+                      <div class="ticker-trend__c" aria-hidden="true">
+                        <span style="height:40%"></span><span style="height:55%"></span><span style="height:48%"></span>
+                        <span style="height:70%"></span><span style="height:62%"></span><span style="height:88%"></span>
+                        <span style="height:100%"></span>
+                      </div>
+                    </div>
+                    <div class="ticker-trend__box">
+                      <div class="ticker-trend__l">日均回款</div>
+                      <div class="ticker-trend__v">31.4<em>万</em></div>
+                      <div class="ticker-trend__c is-teal" aria-hidden="true">
+                        <span style="height:50%"></span><span style="height:45%"></span><span style="height:60%"></span>
+                        <span style="height:58%"></span><span style="height:72%"></span><span style="height:80%"></span>
+                        <span style="height:92%"></span>
+                      </div>
+                    </div>
+                    <div class="ticker-trend__box">
+                      <div class="ticker-trend__l">新增商机</div>
+                      <div class="ticker-trend__v">18<em>个</em></div>
+                      <div class="ticker-trend__c" aria-hidden="true">
+                        <span style="height:30%"></span><span style="height:45%"></span><span style="height:55%"></span>
+                        <span style="height:40%"></span><span style="height:70%"></span><span style="height:65%"></span>
+                        <span style="height:85%"></span>
+                      </div>
+                    </div>
+                    <div class="ticker-trend__box">
+                      <div class="ticker-trend__l">客诉关闭率</div>
+                      <div class="ticker-trend__v">96.2<em>%</em></div>
+                      <div class="ticker-trend__c is-teal" aria-hidden="true">
+                        <span style="height:75%"></span><span style="height:80%"></span><span style="height:78%"></span>
+                        <span style="height:88%"></span><span style="height:90%"></span><span style="height:92%"></span>
+                        <span style="height:98%"></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="wb-ticker__panel">
+                <div class="wb-ticker__hd">
+                  <h3><span class="wb-dot wb-dot--amber"></span>今日日程</h3>
+                  <a class="link" href="#">日历</a>
+                </div>
+                <div class="wb-ticker__bd">
+                  <div class="ticker-meet">
+                    <div class="ticker-meet__item">
+                      <div class="ticker-meet__time">09:30</div>
+                      <div>
+                        <div class="ticker-meet__t">经营早会</div>
+                        <div class="ticker-meet__d">决策中心 · 线上会议室 A</div>
+                      </div>
+                    </div>
+                    <div class="ticker-meet__item">
+                      <div class="ticker-meet__time">11:00</div>
+                      <div>
+                        <div class="ticker-meet__t">重点客户跟进复盘</div>
+                        <div class="ticker-meet__d">大客户部 · 3F 洽谈室</div>
+                      </div>
+                    </div>
+                    <div class="ticker-meet__item">
+                      <div class="ticker-meet__time">14:30</div>
+                      <div>
+                        <div class="ticker-meet__t">供应链周例会</div>
+                        <div class="ticker-meet__d">产品供应链中心</div>
+                      </div>
+                    </div>
+                    <div class="ticker-meet__item">
+                      <div class="ticker-meet__time">16:00</div>
+                      <div>
+                        <div class="ticker-meet__t">Q1 经营分析初稿评审</div>
+                        <div class="ticker-meet__d">财务 + 销售 · 需提交材料</div>
+                      </div>
+                    </div>
+                    <div class="ticker-meet__item">
+                      <div class="ticker-meet__time">17:30</div>
+                      <div>
+                        <div class="ticker-meet__t">红灯任务闭环跟进</div>
+                        <div class="ticker-meet__d">项目运营中心</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <section class="wb-panel" id="ops">
+              <div class="wb-panel__hd">
+                <h2><span class="wb-dot"></span>经营管理数据中心</h2>
+                <span class="meta">各店铺经营分布 · 本月累计</span>
+              </div>
+              <div class="wb-panel__bd">
+                <div class="ops-sum">
+                  <div class="ops-sum__item">
+                    <div class="ops-sum__l">全渠道销售</div>
+                    <div class="ops-sum__v">1,286<em>万</em><span class="ops-sum__d is-up">↑12.4%</span></div>
+                  </div>
+                  <div class="ops-sum__item">
+                    <div class="ops-sum__l">全渠道回款</div>
+                    <div class="ops-sum__v">942<em>万</em><span class="ops-sum__d is-up">↑8.1%</span></div>
+                  </div>
+                  <div class="ops-sum__item">
+                    <div class="ops-sum__l">综合毛利率</div>
+                    <div class="ops-sum__v">38.6<em>%</em><span class="ops-sum__d is-down">↓1.2pt</span></div>
+                  </div>
+                  <div class="ops-sum__item">
+                    <div class="ops-sum__l">在营店铺</div>
+                    <div class="ops-sum__v">6<em>家</em></div>
+                  </div>
+                  <div class="ops-sum__item">
+                    <div class="ops-sum__l">达标店铺</div>
+                    <div class="ops-sum__v">4<em>/6</em></div>
+                  </div>
+                </div>
+                <div class="shop-table-wrap">
+                  <table class="shop-table">
+                    <thead>
+                      <tr>
+                        <th>店铺</th>
+                        <th>销售占比</th>
+                        <th class="right">销售收入</th>
+                        <th class="right">回款</th>
+                        <th class="right">毛利率</th>
+                        <th class="right">订单量</th>
+                        <th class="right">环比</th>
+                        <th>状态</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <div class="shop-name">
+                            <span class="shop-logo is-tm">天</span>
+                            <div>
+                              天猫旗舰店
+                              <div class="shop-sub">负责人 · 张梅</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="shop-share">
+                            <div class="shop-share__bar"><div class="shop-share__fill" style="width:32%"></div></div>
+                            <span class="shop-share__pct">32%</span>
+                          </div>
+                        </td>
+                        <td class="right num">412 万</td>
+                        <td class="right num">298 万</td>
+                        <td class="right num">41.2%</td>
+                        <td class="right num">8,640</td>
+                        <td class="right"><span class="delta is-up">↑ 15.2%</span></td>
+                        <td><span class="shop-status is-ok">达标</span></td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="shop-name">
+                            <span class="shop-logo is-jd">京</span>
+                            <div>
+                              京东自营店
+                              <div class="shop-sub">负责人 · 刘洋</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="shop-share">
+                            <div class="shop-share__bar"><div class="shop-share__fill" style="width:24%"></div></div>
+                            <span class="shop-share__pct">24%</span>
+                          </div>
+                        </td>
+                        <td class="right num">308 万</td>
+                        <td class="right num">256 万</td>
+                        <td class="right num">36.8%</td>
+                        <td class="right num">5,210</td>
+                        <td class="right"><span class="delta is-up">↑ 9.6%</span></td>
+                        <td><span class="shop-status is-ok">达标</span></td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="shop-name">
+                            <span class="shop-logo is-dy">抖</span>
+                            <div>
+                              抖音小店
+                              <div class="shop-sub">负责人 · 陈杰</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="shop-share">
+                            <div class="shop-share__bar"><div class="shop-share__fill" style="width:18%"></div></div>
+                            <span class="shop-share__pct">18%</span>
+                          </div>
+                        </td>
+                        <td class="right num">231 万</td>
+                        <td class="right num">168 万</td>
+                        <td class="right num">33.5%</td>
+                        <td class="right num">12,480</td>
+                        <td class="right"><span class="delta is-up">↑ 22.1%</span></td>
+                        <td><span class="shop-status is-warn">预警</span></td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="shop-name">
+                            <span class="shop-logo is-pdd">拼</span>
+                            <div>
+                              拼多多官方店
+                              <div class="shop-sub">负责人 · 周丽</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="shop-share">
+                            <div class="shop-share__bar"><div class="shop-share__fill" style="width:12%"></div></div>
+                            <span class="shop-share__pct">12%</span>
+                          </div>
+                        </td>
+                        <td class="right num">154 万</td>
+                        <td class="right num">112 万</td>
+                        <td class="right num">28.4%</td>
+                        <td class="right num">9,870</td>
+                        <td class="right"><span class="delta is-down">↓ 3.8%</span></td>
+                        <td><span class="shop-status is-danger">落后</span></td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="shop-name">
+                            <span class="shop-logo is-wx">微</span>
+                            <div>
+                              微信小程序商城
+                              <div class="shop-sub">负责人 · 孙浩</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="shop-share">
+                            <div class="shop-share__bar"><div class="shop-share__fill" style="width:8%"></div></div>
+                            <span class="shop-share__pct">8%</span>
+                          </div>
+                        </td>
+                        <td class="right num">103 万</td>
+                        <td class="right num">72 万</td>
+                        <td class="right num">45.6%</td>
+                        <td class="right num">2,160</td>
+                        <td class="right"><span class="delta is-up">↑ 6.4%</span></td>
+                        <td><span class="shop-status is-ok">达标</span></td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="shop-name">
+                            <span class="shop-logo is-offline">线</span>
+                            <div>
+                              线下门店合计
+                              <div class="shop-sub">负责人 · 王凯 · 3 家</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="shop-share">
+                            <div class="shop-share__bar"><div class="shop-share__fill" style="width:6%"></div></div>
+                            <span class="shop-share__pct">6%</span>
+                          </div>
+                        </td>
+                        <td class="right num">78 万</td>
+                        <td class="right num">36 万</td>
+                        <td class="right num">42.0%</td>
+                        <td class="right num">980</td>
+                        <td class="right"><span class="delta is-up">↑ 4.2%</span></td>
+                        <td><span class="shop-status is-ok">达标</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
+            <div class="wb-grid">
+              <section class="wb-panel" id="goals">
+                <div class="wb-panel__hd">
+                  <h2><span class="wb-dot wb-dot--teal"></span>目标管理数据中心</h2>
+                  <a class="link" href="#">查看全部</a>
+                </div>
+                <div class="wb-panel__bd">
+                  <div class="goal-list">
+                    <div class="goal">
+                      <div class="goal__top">
+                        <div>
+                          <div class="goal__name">Q1 销售收入目标</div>
+                          <div class="goal__owner">责任人 · 销售中心 / 目标 3,600 万</div>
+                        </div>
+                        <div class="goal__pct">72%</div>
+                      </div>
+                      <div class="goal__bar"><div class="goal__fill" style="width:72%"></div></div>
+                      <div class="goal__meta"><span>已完成 2,592 万</span><span>剩余 28 天</span></div>
+                    </div>
+                    <div class="goal">
+                      <div class="goal__top">
+                        <div>
+                          <div class="goal__name">重点客户签约数</div>
+                          <div class="goal__owner">责任人 · 大客户部 / 目标 18 家</div>
+                        </div>
+                        <div class="goal__pct">56%</div>
+                      </div>
+                      <div class="goal__bar"><div class="goal__fill is-warn" style="width:56%"></div></div>
+                      <div class="goal__meta"><span>已签约 10 家</span><span>剩余 28 天</span></div>
+                    </div>
+                    <div class="goal">
+                      <div class="goal__top">
+                        <div>
+                          <div class="goal__name">回款完成率</div>
+                          <div class="goal__owner">责任人 · 财务中心 / 目标 95%</div>
+                        </div>
+                        <div class="goal__pct">88%</div>
+                      </div>
+                      <div class="goal__bar"><div class="goal__fill is-ok" style="width:88%"></div></div>
+                      <div class="goal__meta"><span>当前 88%</span><span class="goal__tag is-ok">健康</span></div>
+                    </div>
+                    <div class="goal">
+                      <div class="goal__top">
+                        <div>
+                          <div class="goal__name">新产品上线里程碑</div>
+                          <div class="goal__owner">责任人 · 产品中心 / 3 个版本</div>
+                        </div>
+                        <div class="goal__pct">33%</div>
+                      </div>
+                      <div class="goal__bar"><div class="goal__fill is-danger" style="width:33%"></div></div>
+                      <div class="goal__meta"><span>已完成 1 / 3</span><span class="goal__tag is-danger">风险 · 偏慢</span></div>
+                    </div>
+                    <div class="goal">
+                      <div class="goal__top">
+                        <div>
+                          <div class="goal__name">人效提升计划</div>
+                          <div class="goal__owner">责任人 · 人力中心 / 人均产出 +8%</div>
+                        </div>
+                        <div class="goal__pct">61%</div>
+                      </div>
+                      <div class="goal__bar"><div class="goal__fill is-warn" style="width:61%"></div></div>
+                      <div class="goal__meta"><span>当前 +4.9%</span><span class="goal__tag is-warn">正常推进</span></div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="wb-panel" id="tasks">
+                <div class="wb-panel__hd">
+                  <h2><span class="wb-dot wb-dot--amber"></span>任务管理数据中心</h2>
+                  <a class="link" href="#">任务看板</a>
+                </div>
+                <div class="wb-panel__bd">
+                  <div class="tl-summary">
+                    <div class="tl-pill is-g"><div class="tl-pill__n">24</div><div class="tl-pill__l">绿灯 · 正常</div></div>
+                    <div class="tl-pill is-y"><div class="tl-pill__n">7</div><div class="tl-pill__l">黄灯 · 预警</div></div>
+                    <div class="tl-pill is-r"><div class="tl-pill__n">3</div><div class="tl-pill__l">红灯 · 逾期</div></div>
+                  </div>
+                  <div class="task-list">
+                    <div class="task">
+                      <span class="task__light is-r"></span>
+                      <div class="task__main">
+                        <div class="task__title">华东渠道季度复盘材料</div>
+                        <div class="task__desc">阻塞：数据口径未对齐 · 需财务确认</div>
+                        <div class="task__prog">
+                          <div class="task__bar"><div class="task__fill is-r" style="width:35%"></div></div>
+                          <span class="task__pct">35%</span>
+                        </div>
+                      </div>
+                      <div class="task__side">
+                        <div class="task__due is-late">逾期 2 天</div>
+                        <span class="task__owner">王敏</span>
+                      </div>
+                    </div>
+                    <div class="task">
+                      <span class="task__light is-r"></span>
+                      <div class="task__main">
+                        <div class="task__title">重点项目合同盖章回传</div>
+                        <div class="task__desc">法务已审 · 等待对方签章</div>
+                        <div class="task__prog">
+                          <div class="task__bar"><div class="task__fill is-r" style="width:80%"></div></div>
+                          <span class="task__pct">80%</span>
+                        </div>
+                      </div>
+                      <div class="task__side">
+                        <div class="task__due is-late">逾期 1 天</div>
+                        <span class="task__owner">李强</span>
+                      </div>
+                    </div>
+                    <div class="task">
+                      <span class="task__light is-y"></span>
+                      <div class="task__main">
+                        <div class="task__title">Q1 经营分析会材料</div>
+                        <div class="task__desc">今日需提交初稿</div>
+                        <div class="task__prog">
+                          <div class="task__bar"><div class="task__fill is-y" style="width:70%"></div></div>
+                          <span class="task__pct">70%</span>
+                        </div>
+                      </div>
+                      <div class="task__side">
+                        <div class="task__due">今天 18:00</div>
+                        <span class="task__owner">赵倩</span>
+                      </div>
+                    </div>
+                    <div class="task">
+                      <span class="task__light is-y"></span>
+                      <div class="task__main">
+                        <div class="task__title">新客获取投放效果复盘</div>
+                        <div class="task__desc">CAC 偏高 · 需调整渠道组合</div>
+                        <div class="task__prog">
+                          <div class="task__bar"><div class="task__fill is-y" style="width:55%"></div></div>
+                          <span class="task__pct">55%</span>
+                        </div>
+                      </div>
+                      <div class="task__side">
+                        <div class="task__due">明天</div>
+                        <span class="task__owner">陈磊</span>
+                      </div>
+                    </div>
+                    <div class="task">
+                      <span class="task__light is-g"></span>
+                      <div class="task__main">
+                        <div class="task__title">生产计划排程确认</div>
+                        <div class="task__desc">本周产能已锁定 · 按计划执行</div>
+                        <div class="task__prog">
+                          <div class="task__bar"><div class="task__fill" style="width:90%"></div></div>
+                          <span class="task__pct">90%</span>
+                        </div>
+                      </div>
+                      <div class="task__side">
+                        <div class="task__due">本周五</div>
+                        <span class="task__owner">周杰</span>
+                      </div>
+                    </div>
+                    <div class="task">
+                      <span class="task__light is-g"></span>
+                      <div class="task__main">
+                        <div class="task__title">组织绩效目标对齐会</div>
+                        <div class="task__desc">各部门 OKR 已同步至系统</div>
+                        <div class="task__prog">
+                          <div class="task__bar"><div class="task__fill" style="width:100%"></div></div>
+                          <span class="task__pct">100%</span>
+                        </div>
+                      </div>
+                      <div class="task__side">
+                        <div class="task__due">下周一</div>
+                        <span class="task__owner">孙悦</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <section class="wb-panel" id="projects">
+              <div class="wb-panel__hd">
+                <h2><span class="wb-dot wb-dot--blue"></span>项目管理数据中心</h2>
+                <a class="link" href="#">项目看板</a>
+              </div>
+              <div class="wb-panel__bd">
+                <div class="proj-sum">
+                  <div class="proj-sum__item is-run">
+                    <div class="proj-sum__n">12</div>
+                    <div class="proj-sum__l">进行中</div>
+                  </div>
+                  <div class="proj-sum__item is-ok">
+                    <div class="proj-sum__n">5</div>
+                    <div class="proj-sum__l">已完成</div>
+                  </div>
+                  <div class="proj-sum__item is-warn">
+                    <div class="proj-sum__n">3</div>
+                    <div class="proj-sum__l">风险预警</div>
+                  </div>
+                  <div class="proj-sum__item is-danger">
+                    <div class="proj-sum__n">2</div>
+                    <div class="proj-sum__l">延期</div>
+                  </div>
+                </div>
+                <div class="proj-grid">
+                  <div class="proj">
+                    <div class="proj__top">
+                      <div>
+                        <div class="proj__name">新品春季系列上线</div>
+                        <div class="proj__code">PJ-2026-031 · 产品中心</div>
+                      </div>
+                      <span class="proj__tag is-danger">延期</span>
+                    </div>
+                    <div class="proj__meta">
+                      <span>负责人 <b>赵倩</b></span>
+                      <span>预算 <b>186 万</b></span>
+                      <span>节点 <b>3/5</b></span>
+                    </div>
+                    <div class="proj__prog">
+                      <div class="proj__bar"><div class="proj__fill is-danger" style="width:42%"></div></div>
+                      <span class="proj__pct">42%</span>
+                    </div>
+                    <div class="proj__foot">
+                      <span>计划完成 03-28</span>
+                      <span>已逾期 5 天</span>
+                    </div>
+                  </div>
+                  <div class="proj">
+                    <div class="proj__top">
+                      <div>
+                        <div class="proj__name">华东渠道升级改造</div>
+                        <div class="proj__code">PJ-2026-018 · 项目运营</div>
+                      </div>
+                      <span class="proj__tag is-warn">风险</span>
+                    </div>
+                    <div class="proj__meta">
+                      <span>负责人 <b>王敏</b></span>
+                      <span>预算 <b>92 万</b></span>
+                      <span>节点 <b>4/7</b></span>
+                    </div>
+                    <div class="proj__prog">
+                      <div class="proj__bar"><div class="proj__fill is-warn" style="width:58%"></div></div>
+                      <span class="proj__pct">58%</span>
+                    </div>
+                    <div class="proj__foot">
+                      <span>计划完成 04-15</span>
+                      <span>资源紧张</span>
+                    </div>
+                  </div>
+                  <div class="proj">
+                    <div class="proj__top">
+                      <div>
+                        <div class="proj__name">供应链仓储数字化</div>
+                        <div class="proj__code">PJ-2026-009 · 供应链</div>
+                      </div>
+                      <span class="proj__tag is-run">进行中</span>
+                    </div>
+                    <div class="proj__meta">
+                      <span>负责人 <b>周杰</b></span>
+                      <span>预算 <b>240 万</b></span>
+                      <span>节点 <b>6/8</b></span>
+                    </div>
+                    <div class="proj__prog">
+                      <div class="proj__bar"><div class="proj__fill" style="width:76%"></div></div>
+                      <span class="proj__pct">76%</span>
+                    </div>
+                    <div class="proj__foot">
+                      <span>计划完成 04-30</span>
+                      <span>进度正常</span>
+                    </div>
+                  </div>
+                  <div class="proj">
+                    <div class="proj__top">
+                      <div>
+                        <div class="proj__name">会员体系 2.0 重构</div>
+                        <div class="proj__code">PJ-2026-022 · AI 科技</div>
+                      </div>
+                      <span class="proj__tag is-run">进行中</span>
+                    </div>
+                    <div class="proj__meta">
+                      <span>负责人 <b>陈磊</b></span>
+                      <span>预算 <b>128 万</b></span>
+                      <span>节点 <b>2/6</b></span>
+                    </div>
+                    <div class="proj__prog">
+                      <div class="proj__bar"><div class="proj__fill" style="width:34%"></div></div>
+                      <span class="proj__pct">34%</span>
+                    </div>
+                    <div class="proj__foot">
+                      <span>计划完成 05-20</span>
+                      <span>刚启动</span>
+                    </div>
+                  </div>
+                  <div class="proj">
+                    <div class="proj__top">
+                      <div>
+                        <div class="proj__name">抖音直播矩阵搭建</div>
+                        <div class="proj__code">PJ-2026-027 · 视觉内容</div>
+                      </div>
+                      <span class="proj__tag is-warn">风险</span>
+                    </div>
+                    <div class="proj__meta">
+                      <span>负责人 <b>孙悦</b></span>
+                      <span>预算 <b>65 万</b></span>
+                      <span>节点 <b>3/5</b></span>
+                    </div>
+                    <div class="proj__prog">
+                      <div class="proj__bar"><div class="proj__fill is-warn" style="width:61%"></div></div>
+                      <span class="proj__pct">61%</span>
+                    </div>
+                    <div class="proj__foot">
+                      <span>计划完成 04-08</span>
+                      <span>达人档期冲突</span>
+                    </div>
+                  </div>
+                  <div class="proj">
+                    <div class="proj__top">
+                      <div>
+                        <div class="proj__name">Q1 经营分析系统对接</div>
+                        <div class="proj__code">PJ-2026-012 · 经营决策</div>
+                      </div>
+                      <span class="proj__tag is-ok">收尾</span>
+                    </div>
+                    <div class="proj__meta">
+                      <span>负责人 <b>李强</b></span>
+                      <span>预算 <b>48 万</b></span>
+                      <span>节点 <b>5/5</b></span>
+                    </div>
+                    <div class="proj__prog">
+                      <div class="proj__bar"><div class="proj__fill is-ok" style="width:92%"></div></div>
+                      <span class="proj__pct">92%</span>
+                    </div>
+                    <div class="proj__foot">
+                      <span>计划完成 03-31</span>
+                      <span>验收中</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        document.querySelectorAll('[data-toggle]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            btn.parentElement.classList.toggle('is-open')
+          })
+        })
+
+        var ticker = document.getElementById('wbTicker')
+        if (ticker) {
+          var paused = false
+          var timer
+          ticker.addEventListener('mouseenter', function () { paused = true })
+          ticker.addEventListener('mouseleave', function () { paused = false })
+          ticker.addEventListener('wheel', function (e) {
+            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+              ticker.scrollLeft += e.deltaY
+              e.preventDefault()
+            }
+          }, { passive: false })
+          function autoScroll() {
+            if (paused || ticker.scrollWidth <= ticker.clientWidth + 4) return
+            ticker.scrollLeft += 1
+            if (ticker.scrollLeft + ticker.clientWidth >= ticker.scrollWidth - 2) {
+              ticker.scrollLeft = 0
+            }
+          }
+          timer = setInterval(autoScroll, 40)
+          window.addEventListener('beforeunload', function () { clearInterval(timer) })
+        }
+      })()
+    </script>
+  </body>
+</html>

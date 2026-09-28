@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.chuangjie</groupId>
+        <artifactId>chuangjie</artifactId>
+        <version>${revision}</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>chuangjie-module-pms</artifactId>
+    <packaging>jar</packaging>
+
+    <name>${project.artifactId}</name>
+    <description>
+        pms 包下，项目管理（Project Management System）
+        例如说：项目、工作事项、迭代、看板、工时和知识库等等
+    </description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.chuangjie</groupId>
+            <artifactId>chuangjie-module-system</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.chuangjie</groupId>
+            <artifactId>chuangjie-module-infra</artifactId>
+            <version>${revision}</version>
+        </dependency>
+
+        <!-- Web 相关 -->
+        <dependency>
+            <groupId>com.chuangjie</groupId>
+            <artifactId>chuangjie-spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.chuangjie</groupId>
+            <artifactId>chuangjie-spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- DB 相关 -->
+        <dependency>
+            <groupId>com.chuangjie</groupId>
+            <artifactId>chuangjie-spring-boot-starter-mybatis</artifactId>
+        </dependency>
+
+        <!-- Job 定时任务相关 -->
+        <dependency>
+            <groupId>com.chuangjie</groupId>
+            <artifactId>chuangjie-spring-boot-starter-job</artifactId>
+        </dependency>
+
+        <!-- Test 测试相关 -->
+        <dependency>
+            <groupId>com.chuangjie</groupId>
+            <artifactId>chuangjie-spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>

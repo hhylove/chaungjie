@@ -1,0 +1,52 @@
+### 人事行政一期接口示例；先在环境中配置 adminToken 和 host
+@host = http://localhost:48080/admin-api
+@adminToken = {{token}}
+
+### 人员工作台统计；需要 hradmin:employee:query，仅统计已建档人员
+GET {{host}}/hradmin/employee/overview
+Authorization: Bearer {{adminToken}}
+
+### 分页查询；需要 hradmin:employee:query
+GET {{host}}/hradmin/employee/page?pageNo=1&pageSize=10&name=
+Authorization: Bearer {{adminToken}}
+
+### 查看详情；需要 hradmin:employee:query
+GET {{host}}/hradmin/employee/get?id=1
+Authorization: Bearer {{adminToken}}
+
+### 创建档案；需要 hradmin:employee:create。userId 可留空，建档不会开通账号。
+POST {{host}}/hradmin/employee/create
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "employeeNo": "E0001",
+  "userId": 141,
+  "name": "示例员工",
+  "deptId": null,
+  "positionName": "人事专员",
+  "projectName": "平台公共服务",
+  "hireDate": "2026-09-28",
+  "probationEndDate": "2026-12-28",
+  "contractEndDate": "2028-09-28",
+  "contractStatus": 1,
+  "socialStatus": 1,
+  "employmentStatus": 1
+}
+
+### 更新档案；需要 hradmin:employee:update。已绑定账号不可在此改绑。
+PUT {{host}}/hradmin/employee/update
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "id": 1,
+  "employeeNo": "E0001",
+  "userId": 141,
+  "name": "示例员工",
+  "positionName": "人事专员",
+  "employmentStatus": 1
+}
+
+### 账号启停与分配角色继续调用 System 既有接口，分别需要：
+### system:user:update 和 system:permission:assign-user-role

@@ -1,0 +1,3 @@
+com.chuangjie.framework.mq.redis.config.ChuangjieRedisMQProducerAutoConfiguration
+com.chuangjie.framework.mq.redis.config.ChuangjieRedisMQConsumerAutoConfiguration
+com.chuangjie.framework.mq.rabbitmq.config.ChuangjieRabbitMQAutoConfiguration
