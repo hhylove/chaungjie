@@ -14,5 +14,4 @@ public class EmployeePageReqVO extends PageParam {
     private Long deptId;
     private Integer employmentStatus;
     private Boolean attentionOnly;
-    private Boolean probationOnly;
 }

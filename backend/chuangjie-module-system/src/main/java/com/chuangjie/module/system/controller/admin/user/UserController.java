@@ -12,6 +12,7 @@ import com.chuangjie.module.system.controller.admin.user.vo.user.*;
 import com.chuangjie.module.system.convert.user.UserConvert;
 import com.chuangjie.module.system.dal.dataobject.dept.DeptDO;
 import com.chuangjie.module.system.dal.dataobject.user.AdminUserDO;
+import com.chuangjie.module.system.dal.mysql.wecom.WecomUserMapper;
 import com.chuangjie.module.system.enums.common.SexEnum;
 import com.chuangjie.module.system.service.dept.DeptService;
 import com.chuangjie.module.system.service.user.AdminUserService;
@@ -36,6 +37,8 @@ import java.util.Map;
 
 import static com.chuangjie.framework.apilog.core.enums.OperateTypeEnum.EXPORT;
 import static com.chuangjie.framework.common.pojo.CommonResult.success;
+import static com.chuangjie.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.chuangjie.module.system.enums.ErrorCodeConstants.WECOM_ACCOUNT_HR_REQUIRED;
 import static com.chuangjie.framework.common.util.collection.CollectionUtils.convertList;
 import static com.chuangjie.framework.common.util.collection.CollectionUtils.convertSet;
 
@@ -49,6 +52,8 @@ public class UserController {
     private AdminUserService userService;
     @Resource
     private DeptService deptService;
+    @Resource
+    private WecomUserMapper wecomUserMapper;
 
     @PostMapping("/create")
     @Operation(summary = "新增用户")
@@ -96,6 +101,10 @@ public class UserController {
     @Operation(summary = "修改用户状态")
     @PreAuthorize("@ss.hasPermission('system:user:update')")
     public CommonResult<Boolean> updateUserStatus(@Valid @RequestBody UserUpdateStatusReqVO reqVO) {
+        if (CommonStatusEnum.ENABLE.getStatus().equals(reqVO.getStatus())
+                && wecomUserMapper.selectBySystemUserId(reqVO.getId()) != null) {
+            throw exception(WECOM_ACCOUNT_HR_REQUIRED);
+        }
         userService.updateUserStatus(reqVO.getId(), reqVO.getStatus());
         return success(true);
     }

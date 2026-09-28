@@ -17,16 +17,12 @@ public interface EmployeeArchiveMapper extends BaseMapperX<EmployeeArchiveDO> {
         return selectOne(EmployeeArchiveDO::getUserId, userId);
     }
     default PageResult<EmployeeArchiveDO> selectPage(EmployeePageReqVO reqVO) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(java.time.ZoneId.of("Asia/Shanghai"));
         LambdaQueryWrapperX<EmployeeArchiveDO> query = new LambdaQueryWrapperX<EmployeeArchiveDO>()
                 .likeIfPresent(EmployeeArchiveDO::getName, reqVO.getName())
                 .likeIfPresent(EmployeeArchiveDO::getEmployeeNo, reqVO.getEmployeeNo())
                 .eqIfPresent(EmployeeArchiveDO::getEmploymentStatus, reqVO.getEmploymentStatus())
                 .eqIfPresent(EmployeeArchiveDO::getDeptId, reqVO.getDeptId());
-        if (Boolean.TRUE.equals(reqVO.getProbationOnly())) {
-            query.ge(EmployeeArchiveDO::getProbationEndDate, today)
-                    .eq(EmployeeArchiveDO::getEmploymentStatus, 1);
-        }
         if (Boolean.TRUE.equals(reqVO.getAttentionOnly())) {
             query.ne(EmployeeArchiveDO::getEmploymentStatus, 3)
                     .and(group -> group.lt(EmployeeArchiveDO::getContractEndDate, today)

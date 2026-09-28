@@ -173,4 +173,5 @@ public interface ErrorCodeConstants {
     ErrorCode WECOM_SYNC_CONFIG_MISSING = new ErrorCode(1_002_029_000, "当前租户未启用企业微信管理端应用配置");
     ErrorCode WECOM_SYNC_REMOTE_ERROR = new ErrorCode(1_002_029_001, "企业微信同步失败：{}");
     ErrorCode WECOM_SYNC_LINK_INVALID = new ErrorCode(1_002_029_002, "员工或系统账号不存在，或该账号已关联其他企微员工");
+    ErrorCode WECOM_ACCOUNT_HR_REQUIRED = new ErrorCode(1_002_029_003, "企微员工账号须在确认到岗后通过人事入职流程开通");
 }

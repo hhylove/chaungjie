@@ -15,4 +15,8 @@ public interface ErrorCodeConstants {
     ErrorCode EMPLOYEE_ARRIVAL_INVALID = new ErrorCode(1_055_100_009, "仅待入职且已到约定日期的人员可确认到岗");
     ErrorCode EMPLOYEE_ACCOUNT_NOT_DISABLED = new ErrorCode(1_055_100_010, "请选择尚未启用的系统账号");
     ErrorCode EMPLOYEE_ACCOUNT_IDENTITY_MISMATCH = new ErrorCode(1_055_100_011, "账号未关联同名企微成员，请先核对身份");
+    ErrorCode RECRUITMENT_STATE_INVALID = new ErrorCode(1_055_100_012, "招聘事项当前阶段不允许该操作");
+    ErrorCode RECRUITMENT_QUOTA_FULL = new ErrorCode(1_055_100_013, "该用人需求的录用名额已满");
+    ErrorCode EMPLOYEE_SALARY_INVALID = new ErrorCode(1_055_100_014, "约定月薪须大于零");
+    ErrorCode ONBOARDING_TASK_INVALID = new ErrorCode(1_055_100_015, "入职事项前置条件或办理身份不满足");
 }

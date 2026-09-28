@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.math.BigDecimal;
 
 @Data
 @Schema(description = "管理后台 - 创建或更新人员档案")
@@ -42,4 +43,6 @@ public class EmployeeSaveReqVO {
     private Integer employmentStatus;
     @Size(max = 1000)
     private String remark;
+    /** 仅建档时写入受控薪酬表，不属于普通员工档案响应。 */
+    private BigDecimal agreedMonthlySalary;
 }

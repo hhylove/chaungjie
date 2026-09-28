@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS hradmin_employee (
     position_name VARCHAR(100) NULL COMMENT '任职名称',
     manager_user_id BIGINT NULL COMMENT '直属负责人账号 ID',
     hire_date DATE NULL COMMENT '入职日期',
-    employment_status TINYINT NOT NULL DEFAULT 0 COMMENT '0 待入职 1 在职 2 离职交接 3 已离职',
+    employment_status TINYINT NOT NULL DEFAULT 0 COMMENT '0 待入职 1 在职 2 离职交接 3 已离职 4 试用期',
     remark VARCHAR(1000) NULL COMMENT '人事备注',
     creator VARCHAR(64) NULL DEFAULT '',
     create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

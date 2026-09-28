@@ -1,26 +1,32 @@
 <template>
   <div class="hr-workspace">
-    <div class="workspace-intro">
+    <div v-if="!canManage" class="workspace-inner">
+      <h1>我的入职事项</h1>
+      <OnboardingPanel v-if="myArchive" :employee="myArchive" own />
+      <el-empty v-else description="暂无已关联的员工档案" />
+    </div>
+    <div v-if="canManage" class="workspace-intro">
       <span class="eyebrow">CHUANGJIE / HR</span>
       <h1>人事行政管理</h1>
       <p>人员、招聘、流程、制度与档案、行政物资仓库</p>
     </div>
-    <div class="workspace-body">
+    <div v-if="canManage" class="workspace-body">
       <nav class="workspace-nav" aria-label="人事行政业务">
-        <button class="active" type="button">人员</button>
-        <button type="button" disabled title="招聘业务尚未接入后端">招聘</button>
+        <button :class="{ active: page === '人员' }" type="button" @click="page = '人员'">人员</button>
+        <button :class="{ active: page === '招聘' }" type="button" v-if="checkPermi(['hradmin:recruitment:query'])" @click="page = '招聘'">招聘</button>
         <button type="button" disabled title="人事流程尚未接入后端">流程</button>
         <button type="button" disabled title="制度档案尚未接入后端">制度与档案</button>
         <button type="button" disabled title="行政物资尚未接入后端">行政物资仓库</button>
       </nav>
-      <div class="workspace-inner">
+      <RecruitmentPanel v-if="page === '招聘'" :departments="departments" @converted="onConverted" />
+      <div v-else class="workspace-inner">
         <div class="heading-row">
           <div>
             <span class="eyebrow">PEOPLE & OPERATIONS</span>
             <h2>人员总览</h2>
             <p>先处理需要关注的事，再看每个人的状态。</p>
           </div>
-          <el-button type="primary" v-hasPermi="['hradmin:employee:create']" @click="openCreate">＋ 新增人员</el-button>
+          <el-button v-if="checkPermi(['hradmin:employee:create']) && checkPermi(['hradmin:salary:write'])" type="primary" @click="openCreate">＋ 新增人员</el-button>
         </div>
         <div class="stat-grid">
           <button v-for="card in statCards" :key="card.label" type="button" class="stat-card" @click="applyStat(card.filter)">
@@ -41,16 +47,13 @@
       <el-form-item label="姓名">
         <el-input v-model="query.name" clearable placeholder="搜索姓名" @keyup.enter="search" />
       </el-form-item>
-      <el-form-item label="工号">
-        <el-input
-          v-model="query.employeeNo"
-          clearable
-          placeholder="搜索工号"
-          @keyup.enter="search"
-        />
+      <el-form-item label="所属中心">
+        <el-select v-model="query.deptId" clearable filterable class="!w-170px" @change="search">
+          <el-option v-for="dept in departments" :key="dept.id" :label="dept.name" :value="dept.id" />
+        </el-select>
       </el-form-item>
       <el-form-item label="任职状态">
-        <el-select v-model="query.employmentStatus" clearable class="!w-150px">
+        <el-select v-model="query.employmentStatus" clearable class="!w-150px" @change="search">
           <el-option v-for="item in statusOptions" :key="item.value" v-bind="item" />
         </el-select>
       </el-form-item>
@@ -62,7 +65,7 @@
           <div class="roster-table">
     <el-table v-loading="loading" :data="rows">
       <el-table-column label="姓名 / 所属中心" min-width="170">
-        <template #default="{ row }"><button class="person-link" type="button" @click="openDetail(row)"><strong>{{ row.accountName || row.name }}</strong><small>{{ deptName(row.accountDeptId || row.deptId) }}</small></button></template>
+        <template #default="{ row }"><button class="person-link" type="button" @click="openDetail(row)"><strong>{{ row.name }}</strong><small>{{ deptName(row.accountDeptId || row.deptId) }}</small></button></template>
       </el-table-column>
       <el-table-column label="职务 / 项目" min-width="160"><template #default="{ row }"><strong>{{ row.positionName || '未登记' }}</strong><br /><small>{{ row.projectName || '—' }}</small></template></el-table-column>
       <el-table-column label="任职状态" min-width="110">
@@ -86,22 +89,6 @@
             编辑
           </el-button>
           <el-button
-            v-if="row.employmentStatus === 0 && checkPermi(['hradmin:employee:update']) && checkPermi(['system:user:query']) && checkPermi(['system:user:update'])"
-            link
-            type="primary"
-            @click="openArrival(row)"
-          >
-            确认到岗
-          </el-button>
-          <el-button
-            v-if="row.userId && row.accountStatus != null && checkPermi(['system:user:update'])"
-            link
-            type="primary"
-            @click="changeAccountStatus(row)"
-          >
-            {{ row.accountStatus === 0 ? '停用账号' : '启用账号' }}
-          </el-button>
-          <el-button
             v-if="
               row.userId &&
               row.accountStatus != null &&
@@ -123,10 +110,15 @@
     </div>
   </div>
 
-  <Dialog v-model="formVisible" :title="form.id ? '编辑人员档案' : '新增人员 · 建立待入职档案'">
+  <Dialog v-model="formVisible" :title="form.id ? '编辑人员档案' : '新增人员'">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="105px" v-loading="saving">
-      <el-alert v-if="!form.id" title="保存后自动生成工号并建立待入职档案；到岗确认时再关联并启用账号。" type="info" :closable="false" class="mb-4" />
-      <el-form-item v-if="form.id" label="工号"><el-input :model-value="form.employeeNo" disabled /></el-form-item>
+      <el-form-item v-if="!form.id" label="录入类型">
+        <el-radio-group v-model="createMode">
+          <el-radio value="pending">待入职人员</el-radio>
+          <el-radio value="existing">原有在职人员</el-radio>
+        </el-radio-group>
+      </el-form-item>
+      <el-alert v-if="!form.id" :title="createMode === 'existing' ? '记录原有员工的实际入职日期和当前情况，不生成招聘或入职流程。' : '建立待入职档案；本人实际到岗后再单独开通权限。'" type="info" :closable="false" class="mb-4" />
       <el-form-item label="姓名" prop="name">
         <el-input v-model="form.name" maxlength="64" />
       </el-form-item>
@@ -155,24 +147,21 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="约定到岗日" prop="hireDate">
+      <el-form-item :label="createMode === 'existing' && !form.id ? '实际入职日' : '约定到岗日'" prop="hireDate">
         <el-date-picker
           v-model="form.hireDate"
           type="date"
           value-format="YYYY-MM-DD"
           class="w-full"
+          :disabled="!!form.id && editingOnboarding"
         />
       </el-form-item>
       <el-form-item label="试用期结束"><el-date-picker v-model="form.probationEndDate" type="date" value-format="YYYY-MM-DD" class="w-full" /></el-form-item>
       <el-form-item label="合同到期"><el-date-picker v-model="form.contractEndDate" type="date" value-format="YYYY-MM-DD" class="w-full" /></el-form-item>
-      <el-form-item v-if="form.id" label="劳动合同"><el-select v-model="form.contractStatus" clearable class="w-full"><el-option label="待签署" :value="0" /><el-option label="已签署" :value="1" /></el-select></el-form-item>
-      <el-form-item v-if="form.id" label="社保状态"><el-select v-model="form.socialStatus" clearable class="w-full"><el-option label="未参保" :value="0" /><el-option label="已参保" :value="1" /></el-select></el-form-item>
-      <el-form-item v-if="form.socialStatus === 0" label="未参保说明"><el-input v-model="form.socialReason" type="textarea" maxlength="500" /></el-form-item>
-      <el-form-item v-if="form.id && form.employmentStatus !== 0" label="任职状态" prop="employmentStatus">
-        <el-select v-model="form.employmentStatus" class="w-full">
-          <el-option v-for="item in statusOptions" :key="item.value" v-bind="item" />
-        </el-select>
-      </el-form-item>
+      <el-form-item v-if="!form.id" label="约定月薪（元）"><el-input-number v-model="form.agreedMonthlySalary" :min="0.01" :precision="2" class="w-full" /></el-form-item>
+      <el-form-item v-if="form.id && !editingOnboarding" label="劳动合同"><el-select v-model="form.contractStatus" clearable class="w-full"><el-option label="待签署" :value="0" /><el-option label="已签署" :value="1" /></el-select></el-form-item>
+      <el-form-item v-if="form.id && !editingOnboarding" label="社保状态"><el-select v-model="form.socialStatus" clearable class="w-full"><el-option label="未参保" :value="0" /><el-option label="已参保" :value="1" /></el-select></el-form-item>
+      <el-form-item v-if="form.id && !editingOnboarding && form.socialStatus === 0" label="未参保说明"><el-input v-model="form.socialReason" type="textarea" maxlength="500" /></el-form-item>
       <el-form-item label="备注">
         <el-input v-model="form.remark" type="textarea" maxlength="1000" show-word-limit />
       </el-form-item>
@@ -183,31 +172,26 @@
       <el-button type="primary" :loading="saving" @click="save">保存</el-button>
     </template>
   </Dialog>
-  <Dialog v-model="arrivalVisible" title="确认到岗并开通账号">
-    <p>核实本人已到岗后，选择企微同步预建的禁用账号。确认后档案变为在职，账号立即启用。</p>
-    <el-alert v-if="!disabledAccounts.length" title="暂无可选的禁用账号，请先在企业微信同步中核实并预建账号。" type="warning" :closable="false" class="mb-4" />
-    <el-select v-model="arrivalUserId" filterable placeholder="选择禁用账号" class="w-full">
-      <el-option v-for="user in disabledAccounts" :key="user.id" :label="`${user.nickname}（ID ${user.id}）`" :value="user.id" />
-    </el-select>
-    <template #footer>
-      <el-button @click="arrivalVisible = false">取消</el-button>
-      <el-button type="primary" :disabled="!arrivalUserId" :loading="saving" @click="confirmArrival">确认到岗并启用</el-button>
-    </template>
-  </Dialog>
   <el-drawer v-model="detailVisible" :title="`${detail?.accountName || detail?.name || ''} · 员工档案`" size="min(720px, 100%)">
     <template v-if="detail">
-      <div class="employee-hero"><div class="employee-avatar">{{ detail.name.slice(-2) }}</div><div><h2>{{ detail.accountName || detail.name }}</h2><p>{{ deptName(detail.accountDeptId || detail.deptId) }} · {{ detail.positionName || '岗位未登记' }}</p></div></div>
+      <div class="employee-hero"><div class="employee-avatar">{{ detail.name.slice(-2) }}</div><div><h2>{{ detail.name }}</h2><p>{{ deptName(detail.accountDeptId || detail.deptId) }} · {{ detail.positionName || '岗位未登记' }}</p></div></div>
       <el-alert v-if="employeeRisk(detail)" :title="employeeRisk(detail)" type="warning" :closable="false" class="mb-4" />
       <el-tabs v-model="detailTab">
-        <el-tab-pane label="基本信息" name="basic"><el-descriptions :column="2" border><el-descriptions-item label="工号">{{ detail.employeeNo }}</el-descriptions-item><el-descriptions-item label="人员状态">{{ statusLabel(detail.employmentStatus) }}</el-descriptions-item><el-descriptions-item label="所属中心">{{ deptName(detail.accountDeptId || detail.deptId) }}</el-descriptions-item><el-descriptions-item label="所属项目">{{ detail.projectName || '未登记' }}</el-descriptions-item><el-descriptions-item label="岗位">{{ detail.positionName || '未登记' }}</el-descriptions-item><el-descriptions-item label="入职日期">{{ detail.hireDate || '未登记' }}</el-descriptions-item><el-descriptions-item label="系统账号">{{ detail.userId || '未关联' }}</el-descriptions-item></el-descriptions></el-tab-pane>
-        <el-tab-pane label="任职薪酬" name="employment"><el-descriptions :column="1" border><el-descriptions-item label="岗位">{{ detail.positionName || '未登记' }}</el-descriptions-item><el-descriptions-item label="试用期结束">{{ detail.probationEndDate || '未登记' }}</el-descriptions-item><el-descriptions-item label="薪酬">尚未建立受控薪酬档案</el-descriptions-item></el-descriptions></el-tab-pane>
+        <el-tab-pane label="基本信息" name="basic"><el-descriptions :column="2" border><el-descriptions-item label="档案编号">{{ detail.id }}</el-descriptions-item><el-descriptions-item label="人员状态">{{ statusLabel(detail.employmentStatus) }}</el-descriptions-item><el-descriptions-item label="所属中心">{{ deptName(detail.accountDeptId || detail.deptId) }}</el-descriptions-item><el-descriptions-item label="所属项目">{{ detail.projectName || '未登记' }}</el-descriptions-item><el-descriptions-item label="岗位">{{ detail.positionName || '未登记' }}</el-descriptions-item><el-descriptions-item label="入职日期">{{ detail.hireDate || '未登记' }}</el-descriptions><OnboardingPanel v-if="onboardingEligible" :employee="detail" @changed="refreshDetail" /></el-tab-pane>
+        <el-tab-pane label="任职薪酬" name="employment"><el-descriptions :column="1" border><el-descriptions-item label="岗位">{{ detail.positionName || '未登记' }}</el-descriptions-item><el-descriptions-item label="试用期结束">{{ detail.probationEndDate || '未登记' }}</el-descriptions-item><el-descriptions-item v-if="checkPermi(['hradmin:salary:read'])" label="约定月薪">{{ salary ? `¥ ${salary.agreedMonthlySalary} · ${salary.status}` : '未登记' }}</el-descriptions-item></el-descriptions></el-tab-pane>
         <el-tab-pane label="合同社保" name="contract"><el-descriptions :column="1" border><el-descriptions-item label="劳动合同">{{ detail.contractStatus == null ? '未登记' : detail.contractStatus === 1 ? '已签署' : '待签署' }}</el-descriptions-item><el-descriptions-item label="合同到期">{{ detail.contractEndDate || '未登记' }}</el-descriptions-item><el-descriptions-item label="社保">{{ detail.socialStatus == null ? '未登记' : detail.socialStatus === 1 ? '已参保' : '未参保' }}</el-descriptions-item><el-descriptions-item label="办理说明">{{ detail.socialReason || '—' }}</el-descriptions-item></el-descriptions></el-tab-pane>
         <el-tab-pane label="培训制度" name="training"><el-empty description="尚无培训与制度签收记录" /></el-tab-pane>
-        <el-tab-pane label="资产权限" name="asset"><el-empty description="尚无资产领用记录；账号权限请在系统账号中办理" /></el-tab-pane>
+        <el-tab-pane label="资产权限" name="asset"><p>系统账号：{{ detail.userId ? '已关联' : '待开通' }}</p><el-button v-if="!onboardingEligible && detail.employmentStatus === 1 && !detail.userId && checkPermi(['hradmin:employee:update']) && checkPermi(['system:user:update'])" @click="openExistingActivation">核验并开通原有人员账号</el-button><el-empty description="尚无资产领用记录" /></el-tab-pane>
         <el-tab-pane label="人事记录" name="history"><el-empty description="人事办理记录尚未接入" /></el-tab-pane>
       </el-tabs>
     </template>
   </el-drawer>
+  <Dialog v-model="existingActivationVisible" title="原有在职人员账号开通">
+    <p>核验档案、本人身份及账号后开通；仅已在职且无入职流程的人员适用。</p>
+    <el-select v-model="existingActivationUserId" filterable placeholder="选择已核验的禁用账号" class="w-full"><el-option v-for="user in disabledAccounts" :key="user.id" :label="user.nickname" :value="user.id" /></el-select>
+    <el-input v-model="existingActivationEvidence" type="textarea" placeholder="填写身份核验和授权依据" class="mt-3" />
+    <template #footer><el-button @click="existingActivationVisible = false">取消</el-button><el-button type="primary" :loading="saving" @click="activateExisting">确认开通</el-button></template>
+  </Dialog>
   <UserAssignRoleForm ref="roleFormRef" @success="load" />
 </template>
 
@@ -217,9 +201,16 @@ import * as UserApi from '@/api/system/user'
 import * as DeptApi from '@/api/system/dept'
 import { checkPermi } from '@/utils/permission'
 import UserAssignRoleForm from '@/views/system/user/UserAssignRoleForm.vue'
+import RecruitmentPanel from './RecruitmentPanel.vue'
+import OnboardingPanel from './OnboardingPanel.vue'
 
 defineOptions({ name: 'HradminEmployee' })
 const message = useMessage()
+const canManage = checkPermi(['hradmin:employee:query'])
+const myArchive = ref<EmployeeApi.EmployeeArchive>()
+const page = ref<'人员' | '招聘'>('人员')
+const salary = ref<{ agreedMonthlySalary: number; status: string }>()
+const onboardingEligible = ref(false)
 const overview = ref<EmployeeApi.EmployeeOverview>({ total: 0, active: 0, pending: 0, probation: 0, attention: 0, dueSoon: 0 })
 const statCards = computed(() => [
   { label: '全部人员', value: overview.value.total, filter: '' },
@@ -235,6 +226,8 @@ const activeQuickFilter = ref('')
 const openDetail = async (row: EmployeeApi.EmployeeArchive) => {
   if (!row.id) return
   detail.value = await EmployeeApi.getEmployee(row.id)
+  salary.value = checkPermi(['hradmin:salary:read']) ? await EmployeeApi.getEmployeeSalary(row.id) : undefined
+  onboardingEligible.value = (await EmployeeApi.getOnboarding(row.id)).length > 0
   detailTab.value = 'basic'
   detailVisible.value = true
 }
@@ -249,21 +242,19 @@ const employeeRisk = (row: EmployeeApi.EmployeeArchive) => {
   return ''
 }
 const probationLabel = (row: EmployeeApi.EmployeeArchive) =>
-  row.probationEndDate && row.employmentStatus === 1 && row.probationEndDate >= today()
+  row.probationEndDate && row.employmentStatus === 4
     ? `${row.probationEndDate} 到期` : '—'
-const displayStatus = (row: EmployeeApi.EmployeeArchive) =>
-  row.employmentStatus === 1 && row.probationEndDate && row.probationEndDate >= today()
-    ? '试用期' : statusLabel(row.employmentStatus)
+const displayStatus = (row: EmployeeApi.EmployeeArchive) => statusLabel(row.employmentStatus)
 const applyStat = (filter: string) => {
   activeQuickFilter.value = filter
-  query.employmentStatus = filter === 'active' || filter === 'probation' ? 1 : filter === 'pending' ? 0 : undefined
+  query.employmentStatus = filter === 'active' ? 1 : filter === 'probation' ? 4 : filter === 'pending' ? 0 : undefined
   query.attentionOnly = filter === 'attention' ? true : undefined
-  query.probationOnly = filter === 'probation' ? true : undefined
   search()
 }
 const statusOptions = [
   { value: 0, label: '待入职' },
   { value: 1, label: '在职' },
+  { value: 4, label: '试用期' },
   { value: 2, label: '离职交接' },
   { value: 3, label: '已离职' }
 ]
@@ -274,10 +265,9 @@ const query = reactive({
   pageNo: 1,
   pageSize: 10,
   name: '',
-  employeeNo: '',
+  deptId: undefined as number | undefined,
   employmentStatus: undefined as number | undefined,
-  attentionOnly: undefined as boolean | undefined,
-  probationOnly: undefined as boolean | undefined
+  attentionOnly: undefined as boolean | undefined
 })
 const rows = ref<EmployeeApi.EmployeeArchive[]>([])
 const total = ref(0)
@@ -292,12 +282,13 @@ const selectedAccountDeptId = computed(
   () =>
     accounts.value.find((user) => user.id === form.value.userId)?.deptId || form.value.accountDeptId
 )
-const arrivalVisible = ref(false)
-const arrivalEmployeeId = ref<number>()
-const arrivalUserId = ref<number>()
-const disabledAccounts = computed(() => accounts.value.filter((user) => user.status === 1))
+const createMode = ref<'pending' | 'existing'>('existing')
+const editingOnboarding = ref(false)
+const existingActivationVisible = ref(false)
+const existingActivationUserId = ref<number>()
+const existingActivationEvidence = ref('')
+const disabledAccounts = computed(() => accounts.value.filter(user => user.status === 1))
 const emptyForm = (): EmployeeApi.EmployeeArchive => ({
-  employeeNo: '',
   name: '',
   employmentStatus: 0
 })
@@ -332,39 +323,56 @@ const loadChoices = async () => {
 }
 const openCreate = async () => {
   form.value = emptyForm()
+  createMode.value = 'existing'
+  editingOnboarding.value = false
   formVisible.value = true
   await loadChoices()
+}
+const onConverted = async (id: number) => {
+  page.value = '人员'
+  await load()
+  const row = await EmployeeApi.getEmployee(id)
+  await openDetail(row)
+}
+const refreshDetail = async () => {
+  if (detail.value?.id) detail.value = await EmployeeApi.getEmployee(detail.value.id)
+  await load()
+}
+const openExistingActivation = async () => {
+  existingActivationUserId.value = undefined
+  existingActivationEvidence.value = ''
+  await loadChoices()
+  existingActivationVisible.value = true
+}
+const activateExisting = async () => {
+  if (!detail.value?.id || !existingActivationUserId.value || !existingActivationEvidence.value.trim()) return message.warning('请选择账号并填写核验依据')
+  saving.value = true
+  try {
+    await EmployeeApi.activateExistingAccount({ employeeId: detail.value.id, userId: existingActivationUserId.value, evidence: existingActivationEvidence.value })
+    existingActivationVisible.value = false
+    await refreshDetail()
+    message.success('账号已开通')
+  } finally { saving.value = false }
 }
 const openEdit = async (row: EmployeeApi.EmployeeArchive) => {
   form.value = { ...row }
+  editingOnboarding.value = (await EmployeeApi.getOnboarding(row.id!)).length > 0
   formVisible.value = true
   await loadChoices()
 }
-const openArrival = async (row: EmployeeApi.EmployeeArchive) => {
-  arrivalEmployeeId.value = row.id
-  arrivalUserId.value = undefined
-  await loadChoices()
-  arrivalVisible.value = true
-}
-const confirmArrival = async () => {
-  if (!arrivalEmployeeId.value || !arrivalUserId.value) return
-  await message.confirm('已核实本人到岗，并确认开通所选账号？')
-  saving.value = true
-  try {
-    await EmployeeApi.confirmArrival(arrivalEmployeeId.value, arrivalUserId.value)
-    arrivalVisible.value = false
-    message.success('到岗已确认，账号已启用')
-    await load()
-  } finally {
-    saving.value = false
-  }
-}
 const save = async () => {
   await formRef.value?.validate()
+  if (!form.value.id && (!form.value.agreedMonthlySalary || form.value.agreedMonthlySalary <= 0)) return message.warning('请填写约定月薪')
+  if (!form.value.id && createMode.value === 'pending' &&
+      (!form.value.probationEndDate || !form.value.contractEndDate || !form.value.hireDate ||
+       form.value.probationEndDate < form.value.hireDate || form.value.contractEndDate <= form.value.hireDate))
+    return message.warning('请填写有效的试用期结束日和合同到期日')
   saving.value = true
   try {
     if (form.value.id) {
       await EmployeeApi.updateEmployee(form.value)
+    } else if (createMode.value === 'existing') {
+      await EmployeeApi.createExistingEmployee({ ...form.value, employmentStatus: 1 })
     } else {
       await EmployeeApi.createEmployee(form.value)
     }
@@ -375,22 +383,18 @@ const save = async () => {
     saving.value = false
   }
 }
-const changeAccountStatus = async (row: EmployeeApi.EmployeeArchive) => {
-  if (!row.userId) return
-  const status = row.accountStatus === 0 ? 1 : 0
-  await message.confirm(`确认${status === 0 ? '启用' : '停用'}该系统账号？`)
-  await UserApi.updateUserStatus(row.userId, status)
-  message.success('账号状态已更新')
-  await load()
-}
 const openRoleForm = async (row: EmployeeApi.EmployeeArchive) => {
   if (!row.userId) return
   const user = await UserApi.getUser(row.userId)
   roleFormRef.value?.open(user)
 }
 onMounted(async () => {
-  departments.value = await DeptApi.getSimpleDeptList()
-  await load()
+  if (canManage) {
+    departments.value = await DeptApi.getSimpleDeptList()
+    await load()
+  } else {
+    try { myArchive.value = await EmployeeApi.getMyArchive() } catch { myArchive.value = undefined }
+  }
 })
 </script>
 

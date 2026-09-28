@@ -32,6 +32,7 @@ export function finishTask(s,pid,tid,role,evidence,now=day(),extra={}){
  if(!canTask(p,t))throw Error('前置必要节点尚未完成，不能跳过');if(t.owner!==role)throw Error(`本节点须由${t.owner}处理`);if(!evidence?.trim())throw Error('请填写办理依据或凭证说明');
  const e=s.employees.find(x=>x.id===p.employeeId);if(e.status==='已离职')throw Error('该员工已离职，不能继续办理');
  if(p.type==='入职'&&t.key==='arrival'&&now<e.start)throw Error('尚未到约定入职日期，不能确认到岗');
+ if(p.type==='入职'&&t.key==='access'&&(e.status!=='试用期'&&e.status!=='在职'||!p.tasks.some(x=>x.key==='arrival'&&x.done)))throw Error('员工尚未确认到岗，不能开通系统权限');
  if(p.type==='转正'&&t.key==='execute'&&now<e.probation)throw Error('尚未到转正生效日');
  if(p.type==='离职'&&t.key==='assetReturn'&&(s.materials||[]).some(m=>m.holder===e.id&&m.status==='领用中'))throw Error('仍有领用资产未归还，请在行政物资仓库办理归还');
  if(t.key==='social'&&extra.social!=='已参保')throw Error('必须确认已依法参保并提供办理证明，不能以放弃协议关闭');
