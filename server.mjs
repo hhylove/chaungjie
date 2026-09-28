@@ -1,0 +1,6 @@
+import http from 'node:http';
+import {readFile} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+const root=fileURLToPath(new URL('.',import.meta.url));
+const designFiles=['workspace-design.css','workspace-design.js','workspace-experience.js','workflow-governance.js','hr/workflow-policy.js'];
+http.createServer(async(req,res)=>{try{const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);const name=pathname==='/'?'index.html':pathname.slice(1);if(![...designFiles,'index.html','app.js','goals.js','goal-ui.js','tasks.js','floating-ai.js','ceo.js','principal.js','commerce.js','supply.js','development.js','lifecycle.js','stock.js','visual.js','flow-nodes.js','cross-approvals.js','ui-enhancements.js','style.css','hr/index.html','hr/app.js','hr/engine.js','hr/style.css','hr/embedded.css','hr/operations.js','hr/operations-ui.js','hr/founders.html','hr/founders-app.js','hr/onboarding.js'].includes(name)){res.writeHead(404);res.end();return;}const data=await readFile(root+name);res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type',name.endsWith('.js')?'text/javascript; charset=utf-8':name.endsWith('.css')?'text/css; charset=utf-8':'text/html; charset=utf-8');res.end(data);}catch{res.writeHead(500);res.end('加载失败');}}).listen(4173,'127.0.0.1',()=>console.log('创界平台：http://localhost:4173'));

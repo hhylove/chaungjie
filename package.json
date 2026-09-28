@@ -1,0 +1,9 @@
+{
+  "name": "chuangjie-platform-prototype",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.mjs",
+    "check": "node --check workflow-governance.js && node --check hr/workflow-policy.js && node --check workspace-design.js && node --check workspace-experience.js && node --check cross-approvals.js && node --check goal-ui.js && node --check app.js && node --check goals.js && node --check tasks.js && node --check floating-ai.js && node --check server.mjs && node --check ceo.js && node --check principal.js && node --check commerce.js && node --check supply.js && node --check development.js && node --check lifecycle.js && node --check stock.js && node --check flow-nodes.js && node --check ui-enhancements.js && node --check visual.js && node --check hr/app.js && node --check hr/engine.js && node --check hr/operations.js && node --check hr/operations-ui.js && node --check hr/founders-app.js && node --check hr/onboarding.js && node --check projects/app.js && node --check projects/engine.js"
+  }
+}
